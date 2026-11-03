@@ -1,5 +1,4 @@
-// 2026-09-26 12:55
-
+// Surge6 拼多多精简脚本
 const url = $request.url;
 if (!$response.body) $done({});
 let body = $response.body;
@@ -84,8 +83,5 @@ if (url.includes("/api/alexa/homepage/hub")) {
     // 将样式代码注入到 HTML 的 </head> 标签之前
     body = body.replace("</head>", hideCSS);
   }
-} else {
-  $done({});
 }
-
 $done({ body });
