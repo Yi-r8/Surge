@@ -13,3 +13,10 @@ AND,((URL-REGEX,^http:\/\/\[(([0-9A-Fa-f]{1,4}:){7}([0-9A-Fa-f]{1,4}|:)|.*)\](\/
 拼多多搜索热词拦截 = type=http-request,pattern=^https:\/\/api\.pinduoduo\.com\/search_hotquery\?,script-path=https://raw.githubusercontent.com/Yi-r8/Surge/refs/heads/main/Js/pdd.js
 
 拼多多页面精简 = type=http-response,pattern=^https:\/\/api\.pinduoduo\.com\/api\/(?:oak\/integration\/render|philo\/personal\/hub\?|search),requires-body=true,script-path=https://raw.githubusercontent.com/Yi-r8/Surge/refs/heads/main/Js/pdd.js
+
+精简首页 = type=http-response,pattern=^https:\/\/api\.pinduoduo\.com\/api\/alexa\/homepage\/hub\?,script-path=https://raw.githubusercontent.com/Yi-r8/Surge/refs/heads/main/Js/pinduoduo.js,requires-body=true
+
+精简评价页 = type=http-response,pattern=^https:\/\/m\.pinduoduo\.net\/comment_result\.html\?,script-path=https://raw.githubusercontent.com/Yi-r8/Surge/refs/heads/main/Js/pinduoduo.js,requires-body=true
+
+精简取件页 = type=http-response,pattern=(?i)^https:\/\/m\.pinduoduo\.net\/mdkd\/package\?,script-path=https://raw.githubusercontent.com/Yi-r8/Surge/refs/heads/main/Js/pinduoduo.js,requires-body=true
+
