@@ -32,3 +32,5 @@ DOMAIN,titan.pinduoduo.com,REJECT,extended-matching,pre-matching
 
 精简取件页 = type=http-response,pattern=(?i)^https:\/\/m\.pinduoduo\.net\/mdkd\/package\?,script-path=https://raw.githubusercontent.com/Yi-r8/Surge/refs/heads/main/Js/pinduoduo.js,requires-body=true
 
+[MITM]
+hostname = api.pinduoduo.com, api.yangkeduo.com, m.pinduoduo.net
