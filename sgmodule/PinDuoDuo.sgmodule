@@ -1,6 +1,6 @@
-#！name=拼多多优化
-#！desc=拼多多广告拦截及页面精简
-#！category=去广告
+#!name=拼多多优化
+#!desc=拼多多广告拦截及页面精简
+#!category=去广告
 
 [Rule]
 AND,((URL-REGEX,"^http:\/\/((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(http:\/\/[\d\.]+)?\/d4?\?"),(USER-AGENT,"*com.xunmeng.pinduoduo*")),REJECT
