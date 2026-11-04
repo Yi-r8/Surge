@@ -37,7 +37,12 @@ function stringsOf(v, depth) {
   return out;
 }
 
+// 空 link 的是 App 原生页签（首页/聊天/个人中心），必须保留；
+// 有 link 的是服务端注入的推广页签（多多视频、分类/11.11），不匹配白名单就删。
 function keepTab(tab) {
+  if (!tab || typeof tab !== "object") return false;
+  const link = tab.link === undefined ? tab.link_url : tab.link;
+  if (link === undefined || link === null || String(link).trim() === "") return true;
   const texts = stringsOf(tab);
   return KEEP_TAB.some((re) => texts.some((t) => re.test(t)));
 }
@@ -45,11 +50,10 @@ function keepTab(tab) {
 function filterList(list, keep, label) {
   if (!Array.isArray(list) || !list.length) return list;
   const kept = list.filter(keep);
-  if (kept.length && kept.length !== list.length) {
+  if (kept.length !== list.length) {
     console.log(label + ": " + list.length + " -> " + kept.length);
-    return kept;
   }
-  return kept.length ? kept : list;
+  return kept;
 }
 
 // ---------- 首页商品流：只摘掉广告位，保留自然结果 ----------
