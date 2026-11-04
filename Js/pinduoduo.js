@@ -42,7 +42,9 @@ function stringsOf(v, depth) {
 function keepTab(tab) {
   if (!tab || typeof tab !== "object") return false;
   const link = tab.link === undefined ? tab.link_url : tab.link;
-  if (link === undefined || link === null || String(link).trim() === "") return true;
+  const hasLink = !(link === undefined || link === null || String(link).trim() === "");
+  // 原生页签（首页/聊天/个人中心）没有 link；推广页签（直播/分类/领券）一定有跳转地址
+  if (!hasLink) return true;
   const texts = stringsOf(tab);
   return KEEP_TAB.some((re) => texts.some((t) => re.test(t)));
 }
@@ -50,6 +52,10 @@ function keepTab(tab) {
 function filterList(list, keep, label) {
   if (!Array.isArray(list) || !list.length) return list;
   const kept = list.filter(keep);
+  if (!kept.length) {
+    console.log(label + ": all filtered, keep original " + list.length);
+    return list;                       // 宁可不动，也不要把底栏清空
+  }
   if (kept.length !== list.length) {
     console.log(label + ": " + list.length + " -> " + kept.length);
   }
