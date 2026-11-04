@@ -1,28 +1,6 @@
-#!name=拼多多
-#!desc=过滤拼多多广告
-# 许可：上游内容 CC BY-NC-SA 4.0 · 来源 LoonLab
-# 来源：https://loon.103516.xyz/Plugin/PinDuoDuo.lpx
-# 提示：Body Rewrite 需要 Surge iOS 5.10+ / macOS 5.6+；jq 正文改写需要 iOS 5.14+ / macOS 5.9+。
-# 提示：Map Local 需要 Surge iOS 5.9.1+ / macOS 5.5.1+；响应头可能与原插件不同。
-# 原作者：sooyaaabo[https://github.com/sooyaaabo], ZenmoFeiShi[https://github.com/ZenmoFeiShi], RuCu6[https://github.com/RuCu6], ishowshu[https://github.com/ishowshu], 可莉🅥[https://github.com/luestr/ProxyResource/blob/main/README.md]
-# 2026-09-28 21:10
-# https://rucu6.pages.dev/Plugins/pinduoduo.lpx
-# 2026-10-02 13:57:49
-# https://kelee.one/Tool/Loon/Lpx/PinDuoDuo_remove_ads.lpx
-# 2026-05-27
-# https://raw.githubusercontent.com/ishowshu/qx/main/rewrite/pdd.snippet
-# 拦截HTTPDNS
-# 移除开屏广告、底栏多多视频、会场入口、聊天页面精选推荐及推广，精简首页和个人中心
-# request if ${url} ~= /^https:\/\/api\.pinduoduo\.com\/api\/caterham\/v3\/query\/order_express_group\?/i then reject_dict(200)
-# request if ${url} ~= /^https:\/\/api\.pinduoduo\.com\/api\/caterham\/v3\/query\/new_chat_group\?/i then reject_dict(200)
-# request if ${url} ~= /^https:\/\/api\.pinduoduo\.com\/api\/caterham\/v3\/query\/personal\?/i then reject_dict(200)
-# request if ${url} ~= /^https:\/\/api\.pinduoduo\.com\/api\/caterham\/v3\/query\/my_order_group\?/i then reject_dict(200)
-# request if ${url} ~= /^https:\/\/api\.pinduoduo\.com\/api\/caterham\/v3\/query\/likes\?/i then reject_dict(200)
-# request if ${url} ~= /^https:\/\/api\.pinduoduo\.com\/api\/caterham\/v3\/query\/push_express\?/i then reject_dict(200)
-# response if ${url} ~= /^https:\/\/api\.pinduoduo\.com\/api\/caterham\/v3\/query\/order_detail_group\?/i then response.json.delete("goods_list")
-# response if ${url} ~= /^https:\/\/api\.pinduoduo\.com\/api\/alexa\/homepage\/hub\?/i then script("https://rucu6.pages.dev/Scripts/pinduoduo.js") with tag="[拼多多]精简首页", timeout=10, requires_body=true
-# 原始脚本标签：[拼多多]精简评价页
-# 原始脚本标签：[拼多多]精简取件页
+#！name=拼多多优化
+#！desc=拼多多广告拦截及页面精简
+#！category=去广告
 
 [Rule]
 AND,((URL-REGEX,"^http:\/\/((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(http:\/\/[\d\.]+)?\/d4?\?"),(USER-AGENT,"*com.xunmeng.pinduoduo*")),REJECT
