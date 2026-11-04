@@ -67,7 +67,7 @@ IP-CIDR,183.194.214.14/32,REJECT
 
 [Body Rewrite]
 http-response-jq (?i)^https://api\.pinduoduo\.com/api/alexa/homepage/hub\? 'delpaths([["result","icon_set"], ["result","search_bar_hot_query"], ["result","dy_module","irregular_banner_dy"]])'
-http-response-jq (?i)^https://api\.pinduoduo\.com/api/alexa/homepage/hub\? '.result.bottom_tabs? |= map(select(((.link // "") | length) == 0 or (.link | IN("index.html","chat_list.html","personal.html")))) | .result.buffer_bottom_tabs? |= map(select(((.link // "") | length) == 0 or (.link | IN("index.html","chat_list.html","personal.html")))) | .result.all_top_opts = [] | .result.module_order? |= map(select(.module_name | IN("irregular_banner","ad_module","timeline") | not))'
+http-response-jq (?i)^https://api\.pinduoduo\.com/api/alexa/homepage/hub\? '.result.bottom_tabs? |= map(select(.link | IN("index.html","chat_list.html","personal.html"))) | .result.buffer_bottom_tabs? |= map(select(.link | IN("index.html","chat_list.html","personal.html"))) | .result.all_top_opts = [] | .result.module_order? |= map(select(.module_name | IN("irregular_banner","ad_module","timeline") | not))'
 http-response-jq (?i)^https://api\.pinduoduo\.com/search\? 'delpaths([["expansion"]])'
 http-response-jq (?i)^https://api\.pinduoduo\.com/api/philo/personal/hub\? 'delpaths([["monthly_card_entrance"], ["personal_center_style_v2_vo"], ["icon_set","icons"], ["icon_set","top_personal_icons"], ["title_bar_items"], ["personal_banner"]])'
 http-response-jq (?i)^https://api\.pinduoduo\.com/api/oak/integration/render\? 'delpaths([["bottom_section_list"], ["ui","bottom_section"], ["ui","live_section","float_info"]])'
