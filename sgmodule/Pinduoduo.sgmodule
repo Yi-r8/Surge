@@ -53,8 +53,10 @@ http-response-jq (?i)^https://api\.pinduoduo\.com/order/ 'delpaths([["marketing_
 http-response-jq (?i)^https://api\.pinduoduo\.com/api/aristotle/order_list_v4\? '.orders |= map(.order_buttons |= map(del(.order_growth_tip)))'
 
 [Script]
-plugin_1 = type=http-response, pattern=(?i)^https://m\.pinduoduo\.net/comment_result\.html\?, script-path=https://rucu6.pages.dev/Scripts/pinduoduo.js, requires-body=true, timeout=10
-plugin_2 = type=http-response, pattern=(?i)^https://m\.pinduoduo\.net/mdkd/package\?, script-path=https://rucu6.pages.dev/Scripts/pinduoduo.js, requires-body=true, timeout=10
+精简首页 = type=http-response, pattern=(?i)/^https:\/\/api\.pinduoduo\.com\/api\/alexa\/homepage\/hub\?, script-path=https://rucu6.pages.dev/Scripts/pinduoduo.js, requires-body=true, timeout=10
+精简评价页 = type=http-response, pattern=(?i)^https://m\.pinduoduo\.net/comment_result\.html\?, script-path=https://rucu6.pages.dev/Scripts/pinduoduo.js, requires-body=true, timeout=10
+精简取件页 = type=http-response, pattern=(?i)^https://m\.pinduoduo\.net/mdkd/package\?, script-path=https://rucu6.pages.dev/Scripts/pinduoduo.js, requires-body=true, timeout=10
+
 
 [MITM]
 hostname = %APPEND% api.pinduoduo.com, api.yangkeduo.com, m.pinduoduo.net
