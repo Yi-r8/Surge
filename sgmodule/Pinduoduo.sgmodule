@@ -59,9 +59,9 @@ http-response-jq (?i)^https://api\.pinduoduo\.com/api/aristotle/order_list_v4\? 
 精简评价页 = type=http-response, pattern=(?i)^https://m\.pinduoduo\.net/comment_result\.html\?, script-path=https://rucu6.pages.dev/Scripts/pinduoduo.js, requires-body=true, timeout=10
 精简取件页 = type=http-response, pattern=(?i)^https://m\.pinduoduo\.net/mdkd/package\?, script-path=https://rucu6.pages.dev/Scripts/pinduoduo.js, requires-body=true, timeout=10
 
-拼多多请求拦截 = type=http-request,pattern=^https:\/\/api\.(?:pinduoduo|yangkeduo)\.com\/api\/(?:cappuccino\/splash|aquarius\/hungary\/global\/homepage|brand-olay\/goods_detail\/bybt_guide|buffon\/nasus\/recommend|caterham\/v3\/query\/|dunkirk\/subaru\/goods_list_v2|engels\/reviews\/require\/append|express\/post\/landing_page\/ad\/recommend_goods_list\/pickup_identity_code|flow\/hungary\/window\/global\/v2|zaire_biz\/chat\/resource\/get_list_data|xrec\/goods_rec\/pay_after_use_v2),script-path=https://rucu6.pages.dev/Scripts/pinduoduo.js
+拼多多请求拦截 = type=http-request,pattern=^https:\/\/api\.(?:pinduoduo|yangkeduo)\.com\/api\/(?:cappuccino\/splash|aquarius\/hungary\/global\/homepage|brand-olay\/goods_detail\/bybt_guide|buffon\/nasus\/recommend|caterham\/v3\/query\/|dunkirk\/subaru\/goods_list_v2|engels\/reviews\/require\/append|express\/post\/landing_page\/ad\/recommend_goods_list\/pickup_identity_code|flow\/hungary\/window\/global\/v2|zaire_biz\/chat\/resource\/get_list_data|xrec\/goods_rec\/pay_after_use_v2),script-path=https://raw.githubusercontent.com/Yi-r8/Surge/refs/heads/main/Js/pdd.js
 拼多多搜索热词拦截 = type=http-request,pattern=^https:\/\/api\.pinduoduo\.com\/search_hotquery\?,script-path=https://raw.githubusercontent.com/Yi-r8/Surge/refs/heads/main/Js/pdd.js
-拼多多页面精简 = type=http-response,pattern=^https:\/\/api\.pinduoduo\.com\/api\/(?:oak\/integration\/render|philo\/personal\/hub\?|search|alexa\/cells\/hub),requires-body=true,max-size=5242880,script-path=https://raw.githubusercontent.com/Yi-r8/Surge/refs/heads/main/Js/pdd.js
+拼多多页面精简 = type=http-response,pattern=^https:\/\/api\.pinduoduo\.com\/api\/(?:oak\/integration\/render|philo\/personal\/hub\?|search|alexa\/cells\/hub),requires-body=true,max-size=5242880,script-path=https://raw.githubusercontent.com/Yi-r8/Surge/refs/heads/main/Js/pinduoduo.js
 
 
 [MITM]
