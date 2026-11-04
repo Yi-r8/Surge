@@ -52,7 +52,49 @@ function filterList(list, keep, label) {
   return kept.length ? kept : list;
 }
 
-if (url.includes("/api/alexa/homepage/hub")) {
+// ---------- 首页商品流：只摘掉广告位，保留自然结果 ----------
+const AD_KEYS = ["is_ad", "ad", "ad_info", "ad_type", "ad_extra", "click_track_info", "sponsor_info"];
+const AD_TYPE_WHITELIST = [0, "0"];
+
+function isAdCell(cell) {
+  if (!cell || typeof cell !== "object") return false;
+  const t = cell.type;
+  if (t !== undefined && AD_TYPE_WHITELIST.indexOf(t) < 0) return true;   // 非商品卡片
+  const g = cell.data || {};
+  if (!g.goods_id) return true;                                           // 没有商品 id 的一律丢弃
+  if (g.need_ad_logo) return true;
+  for (let i = 0; i < AD_KEYS.length; i++) {
+    const v = g[AD_KEYS[i]];
+    if (v && !(typeof v === "object" && Object.keys(v).length === 0)) return true;
+  }
+  const tags = g.tag_list || [];
+  for (let i = 0; i < tags.length; i++) {
+    const txt = String(tags[i] && (tags[i].text || tags[i].title) || "");
+    if (txt.indexOf("广告") >= 0 || txt.indexOf("推广") >= 0) return true;
+  }
+  return false;
+}
+
+if (url.indexOf("/api/alexa/cells/hub") >= 0) {
+  try {
+    const obj = JSON.parse(body);
+    const list = obj && obj.data && obj.data.goods_list;
+    if (Array.isArray(list) && list.length) {
+      const kept = list.filter((c) => !isAdCell(c));
+      const dropped = list.length - kept.length;
+      if (dropped > 0) {
+        obj.data.goods_list = kept;
+        console.log("feed: " + list.length + " -> " + kept.length + " (drop " + dropped + ")");
+      } else {
+        console.log("feed: " + list.length + " cells, no ad cell");
+      }
+    }
+    body = JSON.stringify(obj);
+  } catch (e) {
+    console.log("feed parse failed: " + e);
+  }
+  $done({ body });
+} else if (url.includes("/api/alexa/homepage/hub")) {
   try {
     const obj = JSON.parse(body);
     const res = obj && obj.result;
