@@ -1,10 +1,10 @@
 #!name=酷安去广告
-#!desc=去除酷安首页信息流、话题热议、搜索热词、我的页面推广卡片及穿山甲广告。基于 ZenmoFeiShi/Qx KuAn.snippet (2025-11-01) 转换，Surge 专用，无外部脚本
-#!author=小慧 (转换自 ZenmoFeiShi / 怎么肥事、walala)
+#!desc=去除酷安首页信息流、话题热议、搜索热词、我的页面推广卡片、帖子详情好物/赞助卡及评论区广告卡。基于 ZenmoFeiShi/Qx KuAn.snippet (2025-11-01) 转换，Surge 专用，无外部脚本
+#!author=小慧 (转换自 ZenmoFeiShi / 怎么肥事、walala，feed/detail 与 replyList 补自 myouhi / xiaomaoJT 的公开去广告逻辑)
 #!homepage=https://github.com/ZenmoFeiShi/Qx/blob/main/KuAn.snippet
 #!category=去广告
 #!system=ios
-#!version=2026-11-08
+#!version=2026-11-08-v2
 #!openUrl=https://www.coolapk.com/
 
 # 说明：
@@ -12,6 +12,11 @@
 #   (^https://api.coolapk.com/v6/user/profile，.data.level = 20 等)。
 #   那条不是去广告，是伪装账号数据，有风控风险，需要的话再单独加。
 # - 需要 Surge 开启 MITM 并信任证书，hostname 已用 %APPEND% 追加，不会覆盖你现有的 MITM。
+# - v2 新增（针对 2026-11-08 截图反馈）：
+#   图1 帖子详情：iPhone 18 Pro Max 好物卡 = feed/detail 的 include_goods；
+#   “内容相关 / 酷回收”推广 = feed/detail 的 detailSponsorCard。
+#   图2 评论区：途虎养车广告卡 = feed/replyList 里混进的 card 型条目（无 id / entityType=card），
+#   正常回复都有 id 且不是 card 型，过滤只会去掉广告卡，不会删正常评论。
 
 [URL Rewrite]
 # 搜索热词
@@ -22,12 +27,16 @@
 [Body Rewrite]
 # 首页 init：去掉推广卡片与“关注”入口
 http-response-jq ^https://api\.coolapk\.com/v6/main/init 'del(.data[]? | select(.entityId == 944 or .entityId == 945 or .entityId == 24455 or .entityId == 36839 or .entityId == 1635 or .title == "关注")) | .data |= map(if .entities then .entities |= map(select(.entityId != 1635 and .entityId != 2261 and .entityId != 1633 and .entityId != 413 and .entityId != 417 and .entityId != 1754 and .entityId != 1966 and .entityId != 2274 and .entityId != 1170 and .entityId != 1175 and .entityId != 1190 and .entityId != 2258 and .title != "关注")) else . end)'
-# 首页信息流 indexV8：去掉“值得买 / 红包”类推广
-http-response-jq ^https://api\.coolapk\.com/v6/main/indexV8 '.data |= map(select((.entityId != 32557 and .entityId != 29349 and .entityId != 28621) and (.title | test("值得买|红包") | not)))'
-# 列表页 dataList：去掉“话题热议”及推广卡片
-http-response-jq ^https://api\.coolapk\.com/v6/page/dataList '.data |= map(select(.title != "话题热议" and (.entityId != 36104 and .entityId != 24309 and .entityId != 12889 and .entityId != 21063 and .entityId != 35730 and .entityId != 35846 and .entityId != 28374 and .entityId != 28375 and .entityId != 27332 and .entityId != 20090 and .entityId != 28773 and .entityId != 29343 and .entityId != 21106)) | if .entities then (.entities |= map(select(.title != "睡个好觉需要什么？"))) else . end)'
+# 首页信息流 indexV8：去掉“值得买 / 红包”类推广及 sponsorCard
+http-response-jq ^https://api\.coolapk\.com/v6/main/indexV8 '.data |= map(select((.entityId != 32557 and .entityId != 29349 and .entityId != 28621) and (.entityTemplate != "sponsorCard") and (.title | test("值得买|红包") | not)))'
+# 列表页 dataList：去掉“话题热议”、推广卡片及 sponsorCard
+http-response-jq ^https://api\.coolapk\.com/v6/page/dataList '.data |= map(select(.title != "话题热议" and (.entityTemplate != "sponsorCard") and (.entityId != 36104 and .entityId != 24309 and .entityId != 12889 and .entityId != 21063 and .entityId != 35730 and .entityId != 35846 and .entityId != 28374 and .entityId != 28375 and .entityId != 27332 and .entityId != 20090 and .entityId != 28773 and .entityId != 29343 and .entityId != 21106)) | if .entities then (.entities |= map(select(.title != "睡个好觉需要什么？" and .entityTemplate != "sponsorCard"))) else . end)'
 # 我的页面卡片配置：去掉 textLink 类推广入口
 http-response-jq ^https://api\.coolapk\.com/v6/account/loadConfig\?key=my_page_card_config '.data |= map(select(.entityType != "textLink" and (.entityId != 1001 and .entityId != 1003 and .entityId != 1004 and .entityId != 1005)) | if .entities then .entities |= map(select(.entityType != "textLink")) else . end)'
+# 帖子详情 feed/detail：清空好物卡与赞助卡，过滤无 id 的热门/置顶回复
+http-response-jq ^https://api\.coolapk\.com/v6/feed/detail '.data.include_goods = [] | .data.include_goods_ids = [] | .data.detailSponsorCard = [] | if .data.hotReplyRows then .data.hotReplyRows |= map(select(.id != null)) else . end | if .data.topReplyRows then .data.topReplyRows |= map(select(.id != null)) else . end'
+# 评论列表 feed/replyList：只保留有 id 且不是 card 型的正常回复，顺带清理楼中楼里的广告卡
+http-response-jq ^https://api\.coolapk\.com/v6/feed/replyList '.data |= map(select(.id != null and .entityType != "card") | if .replyRows then .replyRows |= map(select(.id != null and .entityType != "card")) else . end)'
 
 [MITM]
 hostname = %APPEND% api.coolapk.com
