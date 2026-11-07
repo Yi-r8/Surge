@@ -7,19 +7,18 @@
 #!tag=去广告
 #!homepage=https://hub.kelee.one
 
-# v2（2026-11-08，小慧整理）：
-# - v1 的 14 条 [Script] 用的可莉 Amap_remove_ads.js（kelee.one）已经 404 了，
-#   手机上也下不下来（你截图里那个“服务器返回了异常状态码：404”就是它），
-#   可莉的 GitHub 仓库也重组过，脚本文件已经不在了。所以 v2 把脚本全部拿掉，
-#   换成可莉新版插件（2026-10-20 快照）的原生写法：7 条 URL Rewrite 直接拒掉
-#   广告接口，11 条 jq 在本地改响应，不再依赖任何外部文件，外部资源那一栏
-#   的报错也就没了。
-# - 保留了 v1 的 3 条拦截规则、2 条 jq（搜索首页 history_tags、打车行程弹窗）
-#   和 13 条空返回；其中 scene/recommend 改走新版 jq 的白名单（不再整个置空），
-#   weather/v2 不再置空（避免影响天气显示），main-page-assets 改由 URL Rewrite 拒掉。
+# v3（2026-11-08，小慧整理）：
+# - 脚本回来了，用的是原插件真正的脚本地址 https://rucu6.pages.dev/Scripts/amap.js。
+#   这个站加了按 User-Agent 判断的防盗链：Loon / Surge 的 UA 返回真文件，
+#   浏览器 UA 或无 UA 返回的是 Telegram 推广页（诱饵），所以之前用 curl 和
+#   浏览器 UA 抓到的都是 10KB 的 Telegram 页面。用 Loon UA 抓到的真文件已验证：
+#   23,517 字节，JS 语法通过，覆盖 23 个接口，正好对应下面 14 条 [Script] 规则。
+#   Surge 下载外部脚本时用的就是自己的 UA，所以能拿到真文件。
+# - v2 的原生规则全部保留（7 条 URL Rewrite、13 条 jq、13 条空返回、3 条拦截），
+#   再加回 14 条 [Script]，脚本和 jq 都是删字段的写法，重复处理也不会冲突。
 # - 仍需要 Surge 开启 MITM 并信任证书；高德会缓存广告配置，装完若没效果，
 #   卸载重装高德并重启手机再试。
-
+#
 [Rule]
 DOMAIN,amap-aos-info-nogw.amap.com,REJECT
 DOMAIN,free-aos-cdn-image.amap.com,REJECT
@@ -75,6 +74,35 @@ http-response-jq ^https:\/\/m5-zb\.amap\.com\/ws\/sharedtrip\/taxi\/order_detail
 ^https:\/\/m5-zb\.amap\.com\/ws\/boss\/(?:order\/car\/(?:feedback\/get_card_questions|feedback\/viptips|king_toolbox_car_bubble|remark\/satisfactionConf|rights_information)|tips\/onscene_visual_optimization) data-type=text data="{}" status-code=200 header="Content-Type:application/json"
 
 ^https:\/\/m5-zb\.amap\.com\/ws\/boss\/(?:pay\/web\/paySuccess\/info\/request|transportation\/diversion\/resource\/driving) data-type=text data="{}" status-code=200 header="Content-Type:application/json"
+
+[Script]
+移除路线规划推广 = type=http-response, pattern=^https:\/\/m5\.amap\.com\/ws\/aos\/perception\/publicTravel\/beforeNavi\?, script-path=https://rucu6.pages.dev/Scripts/amap.js, requires-body=true
+
+移除路线规划、导航结束页推广 = type=http-response, pattern=^https:\/\/m5\.amap\.com\/ws\/bus\/plan\/integrate\?, script-path=https://rucu6.pages.dev/Scripts/amap.js, requires-body=true
+
+移除导航详情页底部酒店、处理附近页 = type=http-response, pattern=^https:\/\/m5\.amap\.com\/ws\/c3frontend\/(?:af-(?:hotel|launch)\/page\/main|af-nearby\/nearby), script-path=https://rucu6.pages.dev/Scripts/amap.js, requires-body=true
+
+移除驾车路线规划推广 = type=http-response, pattern=^https:\/\/m5\.amap\.com\/ws\/perception\/drive\/(?:routeInfo|routePlan), script-path=https://rucu6.pages.dev/Scripts/amap.js, requires-body=true
+
+移除搜索栏推广 = type=http-response, pattern=^https:\/\/m5\.amap\.com\/ws\/shield\/search_bff\/hotword\?, script-path=https://rucu6.pages.dev/Scripts/amap.js, requires-body=true
+
+移除搜索详情页推广 = type=http-response, pattern=^https:\/\/m5\.amap\.com\/ws\/shield\/search_poi\/(?:mps|search\/sp|sug|tips_operation_location), script-path=https://rucu6.pages.dev/Scripts/amap.js, requires-body=true
+
+移除首页推广 = type=http-response, pattern=^https:\/\/m5\.amap\.com\/ws\/faas\/amap-navigation\/(?:card-service-plan-home|main-page), script-path=https://rucu6.pages.dev/Scripts/amap.js, requires-body=true
+
+移除首页 AOCS 推广 = type=http-response, pattern=^https:\/\/m5\.amap\.com\/ws\/shield\/frogserver\/aocs\/updatable\/1\?, script-path=https://rucu6.pages.dev/Scripts/amap.js, requires-body=true
+
+移除我的页面推广 = type=http-response, pattern=^https:\/\/m5\.amap\.com\/ws\/shield\/dsp\/profile\/index\/nodefaasv3\?, script-path=https://rucu6.pages.dev/Scripts/amap.js, requires-body=true
+
+移除附近页推广 = type=http-response, pattern=^https:\/\/m5\.amap\.com\/ws\/shield\/search\/nearbyrec_smart\?, script-path=https://rucu6.pages.dev/Scripts/amap.js, requires-body=true
+
+移除开屏广告 = type=http-response, pattern=^https:\/\/m5\.amap\.com\/ws\/valueadded\/alimama\/splash_screen\?, script-path=https://rucu6.pages.dev/Scripts/amap.js, requires-body=true
+
+移除打车页推广卡片、弹窗 = type=http-response, pattern=^https:\/\/m5-zb\.amap\.com\/ws\/boss\/(?:car\/order\/content_info|order_web\/friendly_information), script-path=https://rucu6.pages.dev/Scripts/amap.js, requires-body=true
+
+移除打车页红点角标、天气图标 = type=http-response, pattern=^https:\/\/m5-zb\.amap\.com\/ws\/promotion-web\/resource(\/home)?\?, script-path=https://rucu6.pages.dev/Scripts/amap.js, requires-body=true
+
+移除导航详情页推广 = type=http-response, pattern=^https:\/\/(?:info|m5)\.amap\.com\/ws\/shield\/search\/(?:common\/coupon\/info|poi\/detail), script-path=https://rucu6.pages.dev/Scripts/amap.js, requires-body=true
 
 [MITM]
 hostname = %APPEND% *.amap.com
