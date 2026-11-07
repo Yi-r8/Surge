@@ -1,0 +1,33 @@
+#!name=酷安去广告
+#!desc=去除酷安首页信息流、话题热议、搜索热词、我的页面推广卡片及穿山甲广告。基于 ZenmoFeiShi/Qx KuAn.snippet (2025-11-01) 转换，Surge 专用，无外部脚本
+#!author=小慧 (转换自 ZenmoFeiShi / 怎么肥事、walala)
+#!homepage=https://github.com/ZenmoFeiShi/Qx/blob/main/KuAn.snippet
+#!category=去广告
+#!system=ios
+#!version=2026-11-08
+#!openUrl=https://www.coolapk.com/
+
+# 说明：
+# - 只做去广告，不含原 snippet 里那条改等级/粉丝数的规则
+#   (^https://api.coolapk.com/v6/user/profile，.data.level = 20 等)。
+#   那条不是去广告，是伪装账号数据，有风控风险，需要的话再单独加。
+# - 需要 Surge 开启 MITM 并信任证书，hostname 已用 %APPEND% 追加，不会覆盖你现有的 MITM。
+
+[URL Rewrite]
+# 搜索热词
+^https://api\.coolapk\.com/v6/search\?.*type=hotSearch - reject-dict
+# 穿山甲广告 SDK
+^https?://api-access\.pangolin-sdk-toutiao\.com/api/ad/union/sdk - reject
+
+[Body Rewrite]
+# 首页 init：去掉推广卡片与“关注”入口
+http-response-jq ^https://api\.coolapk\.com/v6/main/init 'del(.data[]? | select(.entityId == 944 or .entityId == 945 or .entityId == 24455 or .entityId == 36839 or .entityId == 1635 or .title == "关注")) | .data |= map(if .entities then .entities |= map(select(.entityId != 1635 and .entityId != 2261 and .entityId != 1633 and .entityId != 413 and .entityId != 417 and .entityId != 1754 and .entityId != 1966 and .entityId != 2274 and .entityId != 1170 and .entityId != 1175 and .entityId != 1190 and .entityId != 2258 and .title != "关注")) else . end)'
+# 首页信息流 indexV8：去掉“值得买 / 红包”类推广
+http-response-jq ^https://api\.coolapk\.com/v6/main/indexV8 '.data |= map(select((.entityId != 32557 and .entityId != 29349 and .entityId != 28621) and (.title | test("值得买|红包") | not)))'
+# 列表页 dataList：去掉“话题热议”及推广卡片
+http-response-jq ^https://api\.coolapk\.com/v6/page/dataList '.data |= map(select(.title != "话题热议" and (.entityId != 36104 and .entityId != 24309 and .entityId != 12889 and .entityId != 21063 and .entityId != 35730 and .entityId != 35846 and .entityId != 28374 and .entityId != 28375 and .entityId != 27332 and .entityId != 20090 and .entityId != 28773 and .entityId != 29343 and .entityId != 21106)) | if .entities then (.entities |= map(select(.title != "睡个好觉需要什么？"))) else . end)'
+# 我的页面卡片配置：去掉 textLink 类推广入口
+http-response-jq ^https://api\.coolapk\.com/v6/account/loadConfig\?key=my_page_card_config '.data |= map(select(.entityType != "textLink" and (.entityId != 1001 and .entityId != 1003 and .entityId != 1004 and .entityId != 1005)) | if .entities then .entities |= map(select(.entityType != "textLink")) else . end)'
+
+[MITM]
+hostname = %APPEND% api.coolapk.com
