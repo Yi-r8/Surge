@@ -1,0 +1,98 @@
+#!name=高德地图去广告
+#!desc=过滤高德地图开屏广告、各页面推广，精简我的页面。
+#!author=RuCu6[https://github.com/RuCu6], kelv1n1n[https://github.com/kelv1n1n], 可莉🅥[https://github.com/luestr/ProxyResource/blob/main/README.md]
+#!icon=https://raw.githubusercontent.com/luestr/IconResource/main/App_icon/120px/Amap.png
+#!category=iKeLee
+#!openUrl=https://apps.apple.com/app/id461703208
+#!tag=去广告
+#!homepage=https://hub.kelee.one
+#!date=2026-02-22 06:04:15
+
+# 说明（小慧整理）：
+# - 来源：RuCu6 的高德去广告模块（QingRex/LoonKissSurge 合集里的 Surge 版）。
+#   你给的 rucu6.pages.dev/Plugins/amap.lpx 打不开，返回的是一个 Telegram 频道页，
+#   不是文件，所以用的就是同一位作者的这个 Surge 版，规则原样保留。
+# - 改动只有两处：[Rule] 去掉了 Loon 专用的 extended-matching,pre-matching 参数
+#   （Surge 不认，改成纯 DOMAIN/DOMAIN-SUFFIX,REJECT）；[Script] 里两个重名项改了
+#   名字（“移除路线规划推广”“移除首页推广”各出现两次，Surge 下重名可能互相覆盖）。
+# - 14 条 [Script] 用的都是可莉的 Amap_remove_ads.js（kelee.one）。这个脚本从我这台
+#   云端机器下载不了（Cloudflare 403，只拦机房 IP），手机上一般能正常下载；装完后
+#   在 Surge 模块里看一下脚本状态，如果显示下载失败再跟我说，我换个镜像地址。
+# - 注意：高德会缓存广告配置，多份资料都说装完模块要卸载重装高德（并重启手机）才生效。
+#   如果装完直接打开没效果，先卸载重装再试。
+# - 需要 Surge 开启 MITM 并信任证书，hostname 已用 %APPEND% 追加，不会覆盖你现有的 MITM。
+
+[Rule]
+DOMAIN,amap-aos-info-nogw.amap.com,REJECT
+DOMAIN,free-aos-cdn-image.amap.com,REJECT
+DOMAIN-SUFFIX,v.smtcdns.com,REJECT
+
+[Body Rewrite]
+http-response-jq ^https:\/\/m5\.amap\.com\/ws\/shield\/search_business\/process\/marketingOperationStructured\? 'delpaths([["data","commonMaterial"]])'
+http-response-jq ^https:\/\/m5\.amap\.com\/ws\/shield\/search_business\/process\/marketingOperationStructured\? 'delpaths([["data","tipsOperationLocation"]])'
+http-response-jq ^https:\/\/m5\.amap\.com\/ws\/shield\/search_business\/process\/marketingOperationStructured\? 'delpaths([["data","resourcePlacement"]])'
+http-response-jq ^https:\/\/m5\.amap\.com\/ws\/shield\/search_poi\/homepage\? 'delpaths([["history_tags"]])'
+http-response-jq ^https:\/\/m5-zb\.amap\.com\/ws\/sharedtrip\/taxi\/order_detail_car_tips\? 'delpaths([["data","carTips","data","popupInfo"]])'
+
+[Map Local]
+^https:\/\/m5-zb\.amap\.com\/ws\/ride\/home\/page\/get_commuting_card\? data-type=text data="{}" status-code=200 header="Content-Type:application/json"
+
+^https:\/\/m5\.amap\.com\/ws\/shield\/search_business\/process\/orderList\? data-type=text data="{}" status-code=200 header="Content-Type:application/json"
+
+^https:\/\/m5\.amap\.com\/ws\/shield\/search\/new_hotword\? data-type=text data="{}" status-code=200 header="Content-Type:application/json"
+
+^https:\/\/m5\.amap\.com\/ws\/faas\/amap-navigation\/card-service-(?:car-end|route-plan) data-type=text data="{}" status-code=200 header="Content-Type:application/json"
+
+^https:\/\/m5\.amap\.com\/ws\/shield\/search_poi\/tips_adv\? data-type=text data="{}" status-code=200 header="Content-Type:application/json"
+
+^https:\/\/oss\.amap\.com\/ws\/banner\/lists\/\? data-type=text data="{}" status-code=200 header="Content-Type:application/json"
+
+^https:\/\/ai\.amap\.com\/v1\/ai_rec\/ data-type=text data="{}" status-code=200 header="Content-Type:application/json"
+
+^https:\/\/m5\.amap\.com\/ws\/aos\/main\/page\/product\/list\? data-type=text data="{}" status-code=200 header="Content-Type:application/json"
+
+^https:\/\/m5\.amap\.com\/ws\/faas\/amap-navigation\/(?:main-page-assets|main-page-location|ridewalk-end-fc|usr-profile-fc\/homeV2) data-type=text data="{}" status-code=200 header="Content-Type:application/json"
+
+^https:\/\/m5\.amap\.com\/ws\/(?:mapapi\/hint_text\/offline_data|message\/notice\/list|shield\/search\/new_hotword) data-type=text data="{}" status-code=200 header="Content-Type:application/json"
+
+^https:\/\/m5\.amap\.com\/ws\/shield\/scene\/recommend\? data-type=text data="{}" status-code=200 header="Content-Type:application/json"
+
+^https:\/\/m5\.amap\.com\/ws\/valueadded\/weather\/v2\? data-type=text data="{}" status-code=200 header="Content-Type:application/json"
+
+^https:\/\/sns\.amap\.com\/ws\/msgbox\/pull_mp\? data-type=text data="{}" status-code=200 header="Content-Type:application/json"
+
+^https:\/\/m5-zb\.amap\.com\/ws\/boss\/(?:order\/car\/(?:feedback\/get_card_questions|feedback\/viptips|king_toolbox_car_bubble|remark\/satisfactionConf|rights_information)|tips\/onscene_visual_optimization) data-type=text data="{}" status-code=200 header="Content-Type:application/json"
+
+^https:\/\/m5-zb\.amap\.com\/ws\/boss\/(?:pay\/web\/paySuccess\/info\/request|transportation\/diversion\/resource\/driving) data-type=text data="{}" status-code=200 header="Content-Type:application/json"
+
+[Script]
+移除路线规划推广 = type=http-response, pattern=^https:\/\/m5\.amap\.com\/ws\/aos\/perception\/publicTravel\/beforeNavi\?, script-path=https://kelee.one/Resource/JavaScript/Amap/Amap_remove_ads.js, requires-body=true
+
+移除路线规划、导航结束页推广 = type=http-response, pattern=^https:\/\/m5\.amap\.com\/ws\/bus\/plan\/integrate\?, script-path=https://kelee.one/Resource/JavaScript/Amap/Amap_remove_ads.js, requires-body=true
+
+移除导航详情页底部酒店、处理附近页 = type=http-response, pattern=^https:\/\/m5\.amap\.com\/ws\/c3frontend\/(?:af-(?:hotel|launch)\/page\/main|af-nearby\/nearby), script-path=https://kelee.one/Resource/JavaScript/Amap/Amap_remove_ads.js, requires-body=true
+
+移除驾车路线规划推广 = type=http-response, pattern=^https:\/\/m5\.amap\.com\/ws\/perception\/drive\/(?:routeInfo|routePlan), script-path=https://kelee.one/Resource/JavaScript/Amap/Amap_remove_ads.js, requires-body=true
+
+移除搜索栏推广 = type=http-response, pattern=^https:\/\/m5\.amap\.com\/ws\/shield\/search_bff\/hotword\?, script-path=https://kelee.one/Resource/JavaScript/Amap/Amap_remove_ads.js, requires-body=true
+
+移除搜索详情页推广 = type=http-response, pattern=^https:\/\/m5\.amap\.com\/ws\/shield\/search_poi\/(?:mps|search\/sp|sug|tips_operation_location), script-path=https://kelee.one/Resource/JavaScript/Amap/Amap_remove_ads.js, requires-body=true
+
+移除首页推广 = type=http-response, pattern=^https:\/\/m5\.amap\.com\/ws\/faas\/amap-navigation\/(?:card-service-plan-home|main-page), script-path=https://kelee.one/Resource/JavaScript/Amap/Amap_remove_ads.js, requires-body=true
+
+移除首页 AOCS 推广 = type=http-response, pattern=^https:\/\/m5\.amap\.com\/ws\/shield\/frogserver\/aocs\/updatable\/1\?, script-path=https://kelee.one/Resource/JavaScript/Amap/Amap_remove_ads.js, requires-body=true
+
+移除我的页面推广 = type=http-response, pattern=^https:\/\/m5\.amap\.com\/ws\/shield\/dsp\/profile\/index\/nodefaasv3\?, script-path=https://kelee.one/Resource/JavaScript/Amap/Amap_remove_ads.js, requires-body=true
+
+移除附近页推广 = type=http-response, pattern=^https:\/\/m5\.amap\.com\/ws\/shield\/search\/nearbyrec_smart\?, script-path=https://kelee.one/Resource/JavaScript/Amap/Amap_remove_ads.js, requires-body=true
+
+移除开屏广告 = type=http-response, pattern=^https:\/\/m5\.amap\.com\/ws\/valueadded\/alimama\/splash_screen\?, script-path=https://kelee.one/Resource/JavaScript/Amap/Amap_remove_ads.js, requires-body=true
+
+移除打车页推广卡片、弹窗 = type=http-response, pattern=^https:\/\/m5-zb\.amap\.com\/ws\/boss\/(?:car\/order\/content_info|order_web\/friendly_information), script-path=https://kelee.one/Resource/JavaScript/Amap/Amap_remove_ads.js, requires-body=true
+
+移除打车页红点角标、天气图标 = type=http-response, pattern=^https:\/\/m5-zb\.amap\.com\/ws\/promotion-web\/resource(\/home)?\?, script-path=https://kelee.one/Resource/JavaScript/Amap/Amap_remove_ads.js, requires-body=true
+
+移除导航详情页推广 = type=http-response, pattern=^https:\/\/(?:info|m5)\.amap\.com\/ws\/shield\/search\/(?:common\/coupon\/info|poi\/detail), script-path=https://kelee.one/Resource/JavaScript/Amap/Amap_remove_ads.js, requires-body=true
+
+[MITM]
+hostname = %APPEND% *.amap.com
