@@ -1,10 +1,10 @@
 #!name=酷安去广告
-#!desc=去除酷安首页信息流、话题热议、搜索热词、我的页面推广卡片、帖子详情好物/赞助卡及评论区广告卡。基于 ZenmoFeiShi/Qx KuAn.snippet (2025-11-01) 转换，Surge 专用，无外部脚本
+#!desc=去除酷安开屏广告（穿山甲/优量汇/快手联盟 SDK 域名级拦截）、首页信息流、话题热议、搜索热词、我的页面推广卡片、帖子详情好物/赞助卡及评论区广告卡。基于 ZenmoFeiShi/Qx KuAn.snippet (2025-11-01) 转换，Surge 专用，无外部脚本
 #!author=小慧 (转换自 ZenmoFeiShi / 怎么肥事、walala，feed/detail 与 replyList 补自 myouhi / xiaomaoJT 的公开去广告逻辑)
 #!homepage=https://github.com/ZenmoFeiShi/Qx/blob/main/KuAn.snippet
 #!category=去广告
 #!system=ios
-#!version=2026-11-08-v2
+#!version=2026-11-08-v3
 #!openUrl=https://www.coolapk.com/
 
 # 说明：
@@ -17,6 +17,47 @@
 #   “内容相关 / 酷回收”推广 = feed/detail 的 detailSponsorCard。
 #   图2 评论区：途虎养车广告卡 = feed/replyList 里混进的 card 型条目（无 id / entityType=card），
 #   正常回复都有 id 且不是 card 型，过滤只会去掉广告卡，不会删正常评论。
+
+# v3 新增（针对开屏广告仍在）：
+#   开屏不是酷安自己的接口，是穿山甲/GroMore 聚合 SDK 在端上直接弹的，
+#   v2 只拦了穿山甲主域的一条路径 api-access.pangolin-sdk-toutiao.com/api/ad/union/sdk，
+#   SDK 失败后会自动切到备用域 / 优量汇 / 快手联盟继续出价，所以开屏照样出。
+#   按 Thelongdarkorg/loon-plugins 酷安插件（2026-10-28 修正）的做法，
+#   改为域名级同时断三家聚合池，主域 + 备用域 + 素材 CDN，并各配一条 QUIC 拦截防绕过。
+#   注意：[Rule] 是全局生效的，这几家 SDK 的广告在其他 App 里也会一并被拦；
+#   *.pangle.cn 是假域名（DoH 双查 NXDOMAIN），不收录。
+#   开屏拦截免 MITM；其余 Body Rewrite 仍需 MITM + 信任证书。
+
+[Rule]
+# 穿山甲 / Pangle / GroMore（字节）
+DOMAIN-SUFFIX,pangolin-sdk-toutiao.com,REJECT
+AND,((DOMAIN-SUFFIX,pangolin-sdk-toutiao.com),(PROTOCOL,QUIC)),REJECT
+DOMAIN-SUFFIX,pangolin-sdk-toutiao-b.com,REJECT
+AND,((DOMAIN-SUFFIX,pangolin-sdk-toutiao-b.com),(PROTOCOL,QUIC)),REJECT
+DOMAIN-SUFFIX,pglstatp-toutiao.com,REJECT
+AND,((DOMAIN-SUFFIX,pglstatp-toutiao.com),(PROTOCOL,QUIC)),REJECT
+DOMAIN-SUFFIX,pangle.io,REJECT
+AND,((DOMAIN-SUFFIX,pangle.io),(PROTOCOL,QUIC)),REJECT
+DOMAIN,ad.toutiao.com,REJECT
+AND,((DOMAIN,ad.toutiao.com),(PROTOCOL,QUIC)),REJECT
+# 优量汇 / 腾讯广告（GDT）
+DOMAIN-SUFFIX,gdt.qq.com,REJECT
+AND,((DOMAIN-SUFFIX,gdt.qq.com),(PROTOCOL,QUIC)),REJECT
+DOMAIN-SUFFIX,gdtimg.com,REJECT
+AND,((DOMAIN-SUFFIX,gdtimg.com),(PROTOCOL,QUIC)),REJECT
+DOMAIN-SUFFIX,pgdt.gtimg.cn,REJECT
+AND,((DOMAIN-SUFFIX,pgdt.gtimg.cn),(PROTOCOL,QUIC)),REJECT
+DOMAIN-SUFFIX,ad.qq.com,REJECT
+AND,((DOMAIN-SUFFIX,ad.qq.com),(PROTOCOL,QUIC)),REJECT
+# 快手联盟
+DOMAIN-SUFFIX,kuaishouzt.com,REJECT
+AND,((DOMAIN-SUFFIX,kuaishouzt.com),(PROTOCOL,QUIC)),REJECT
+DOMAIN-SUFFIX,open.e.kuaishou.com,REJECT
+AND,((DOMAIN-SUFFIX,open.e.kuaishou.com),(PROTOCOL,QUIC)),REJECT
+DOMAIN-SUFFIX,kwaiad.com,REJECT
+AND,((DOMAIN-SUFFIX,kwaiad.com),(PROTOCOL,QUIC)),REJECT
+DOMAIN-SUFFIX,adkwai.com,REJECT
+AND,((DOMAIN-SUFFIX,adkwai.com),(PROTOCOL,QUIC)),REJECT
 
 [URL Rewrite]
 # 搜索热词
