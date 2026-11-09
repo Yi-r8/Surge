@@ -4,50 +4,73 @@
 #!homepage=https://github.com/ZenmoFeiShi/Qx/blob/main/KuAn.snippet
 #!category=去广告
 #!system=ios
-#!version=2026-11-09-v4
+#!version=2026-11-09-v5
 #!openUrl=https://www.coolapk.com/
 
-# ============ v4 修正（2026-11-09）============
-# 1. 修复 [URL Rewrite] 语法错误（这是之前整个段被跳过、日志报"第 64 行存在無效配置"的原因）
-#    原写法 `^url - reject-dict` 里的 `-` 和 `reject-dict` 都是 Loon 语法，Surge 不认。
-#    Surge 的 URL Rewrite 模式只有四种：header（默认）/ 302 / 307 / reject。
-#    - 搜索热词要返回空字典 → 改用 [Map Local] 返回 {}
-#    - 穿山甲 SDK 要直接拒绝 → 改用 reject 模式
-# 2. 新增开屏广告处理（v3 的域名级拦截没生效，说明酷安开屏走的是自有广告位）
-#    main/init 的 data[].extraDataArr 里有 17 个 SplashAd.* / Ad.SPLASH* 键控制开屏，
-#    把它们删掉后 App 拿不到开屏配置，应会跳过。这是实测抓包确认的字段。
-# 3. [Rule] 是全局生效的：这几家 SDK 的广告在其他 App 里也会一并被拦。
+# ============ 版本说明 ============
+# v5（2026-11-09）本次修正：
+#   1. 【新增域名】补上 api-access.pangolin-sdk-toutiao1.com
+#      抓包 100 条请求发现，该域名被请求 9 次，是穿山甲的备用域。
+#      原规则只写了 pangolin-sdk-toutiao.com（无 1），后缀匹配不到 -toutiao1.com。
+#   2. 【新增域名】补上 tnc3-alisc1.zijieapi.com（字节域名调度服务）
+#      开屏时 SDK 会用它获取可用的广告域名列表，绕过前面的域名拦截。
+#   3. 【新增域名】补上 sdk-config.tanx.com（阿里 TanX 广告）
+#   4. 【改为 REJECT-DROP】穿山甲 / 优量汇 的核心域名
+#      抓包显示这些请求即便被 REJECT，SDK 仍在疯狂重试（单次开屏 100 条请求中
+#      有 60+ 条是广告 SDK 的重试）。REJECT-DROP 静默丢包，不返回 RST，
+#      可显著减少重试风暴，是开屏卡顿的主因之一。
+#      注意：代价是客户端要等超时，但广告 SDK 本身就会超时，体感无差异。
+#
+# v4（2026-11-09）：
+#   1. 修复 [URL Rewrite] 语法错误（原写法 `- reject-dict` 是 Loon 语法，
+#      Surge 不认，导致整个 [URL Rewrite] 段被跳过）
+#   2. 新增开屏广告拦截：main/init 的 extraDataArr 里 17 个 SplashAd.* / Ad.SPLASH* 键
+#
+# [Rule] 是全局生效的：这几家 SDK 的广告在其他 App 里也会一并被拦。
 
 [Rule]
-# 穿山甲 / Pangle / GroMore（字节）
-DOMAIN-SUFFIX,pangolin-sdk-toutiao.com,REJECT
-AND,((DOMAIN-SUFFIX,pangolin-sdk-toutiao.com),(PROTOCOL,QUIC)),REJECT
-DOMAIN-SUFFIX,pangolin-sdk-toutiao-b.com,REJECT
-AND,((DOMAIN-SUFFIX,pangolin-sdk-toutiao-b.com),(PROTOCOL,QUIC)),REJECT
-DOMAIN-SUFFIX,pglstatp-toutiao.com,REJECT
-AND,((DOMAIN-SUFFIX,pglstatp-toutiao.com),(PROTOCOL,QUIC)),REJECT
-DOMAIN-SUFFIX,pangle.io,REJECT
-AND,((DOMAIN-SUFFIX,pangle.io),(PROTOCOL,QUIC)),REJECT
-DOMAIN,ad.toutiao.com,REJECT
-AND,((DOMAIN,ad.toutiao.com),(PROTOCOL,QUIC)),REJECT
-# 优量汇 / 腾讯广告（GDT）
-DOMAIN-SUFFIX,gdt.qq.com,REJECT
-AND,((DOMAIN-SUFFIX,gdt.qq.com),(PROTOCOL,QUIC)),REJECT
-DOMAIN-SUFFIX,gdtimg.com,REJECT
-AND,((DOMAIN-SUFFIX,gdtimg.com),(PROTOCOL,QUIC)),REJECT
-DOMAIN-SUFFIX,pgdt.gtimg.cn,REJECT
-AND,((DOMAIN-SUFFIX,pgdt.gtimg.cn),(PROTOCOL,QUIC)),REJECT
-DOMAIN-SUFFIX,ad.qq.com,REJECT
-AND,((DOMAIN-SUFFIX,ad.qq.com),(PROTOCOL,QUIC)),REJECT
-# 快手联盟
-DOMAIN-SUFFIX,kuaishouzt.com,REJECT
-AND,((DOMAIN-SUFFIX,kuaishouzt.com),(PROTOCOL,QUIC)),REJECT
-DOMAIN-SUFFIX,open.e.kuaishou.com,REJECT
-AND,((DOMAIN-SUFFIX,open.e.kuaishou.com),(PROTOCOL,QUIC)),REJECT
-DOMAIN-SUFFIX,kwaiad.com,REJECT
-AND,((DOMAIN-SUFFIX,kwaiad.com),(PROTOCOL,QUIC)),REJECT
-DOMAIN-SUFFIX,adkwai.com,REJECT
-AND,((DOMAIN-SUFFIX,adkwai.com),(PROTOCOL,QUIC)),REJECT
+# ============ 穿山甲 / Pangle / GroMore（字节）============
+DOMAIN-SUFFIX,pangolin-sdk-toutiao.com,REJECT-DROP
+AND,((DOMAIN-SUFFIX,pangolin-sdk-toutiao.com),(PROTOCOL,QUIC)),REJECT-DROP
+DOMAIN-SUFFIX,pangolin-sdk-toutiao-b.com,REJECT-DROP
+AND,((DOMAIN-SUFFIX,pangolin-sdk-toutiao-b.com),(PROTOCOL,QUIC)),REJECT-DROP
+DOMAIN-SUFFIX,pangolin-sdk-toutiao1.com,REJECT-DROP
+AND,((DOMAIN-SUFFIX,pangolin-sdk-toutiao1.com),(PROTOCOL,QUIC)),REJECT-DROP
+DOMAIN-SUFFIX,pglstatp-toutiao.com,REJECT-DROP
+AND,((DOMAIN-SUFFIX,pglstatp-toutiao.com),(PROTOCOL,QUIC)),REJECT-DROP
+DOMAIN-SUFFIX,pangle.io,REJECT-DROP
+AND,((DOMAIN-SUFFIX,pangle.io),(PROTOCOL,QUIC)),REJECT-DROP
+DOMAIN,ad.toutiao.com,REJECT-DROP
+AND,((DOMAIN,ad.toutiao.com),(PROTOCOL,QUIC)),REJECT-DROP
+# 字节域名调度（SDK 用它换取可用广告域名，会绕过域名拦截）
+DOMAIN-SUFFIX,zijieapi.com,REJECT-DROP
+DOMAIN-SUFFIX,zijieapi.net,REJECT-DROP
+
+# ============ 优量汇 / 腾讯广告（GDT）============
+DOMAIN-SUFFIX,gdt.qq.com,REJECT-DROP
+AND,((DOMAIN-SUFFIX,gdt.qq.com),(PROTOCOL,QUIC)),REJECT-DROP
+DOMAIN-SUFFIX,gdtimg.com,REJECT-DROP
+AND,((DOMAIN-SUFFIX,gdtimg.com),(PROTOCOL,QUIC)),REJECT-DROP
+DOMAIN-SUFFIX,pgdt.gtimg.cn,REJECT-DROP
+AND,((DOMAIN-SUFFIX,pgdt.gtimg.cn),(PROTOCOL,QUIC)),REJECT-DROP
+DOMAIN-SUFFIX,ad.qq.com,REJECT-DROP
+AND,((DOMAIN-SUFFIX,ad.qq.com),(PROTOCOL,QUIC)),REJECT-DROP
+DOMAIN-SUFFIX,e.qq.com,REJECT-DROP
+AND,((DOMAIN-SUFFIX,e.qq.com),(PROTOCOL,QUIC)),REJECT-DROP
+
+# ============ 阿里 TanX ============
+DOMAIN-SUFFIX,tanx.com,REJECT-DROP
+AND,((DOMAIN-SUFFIX,tanx.com),(PROTOCOL,QUIC)),REJECT-DROP
+
+# ============ 快手联盟 ============
+DOMAIN-SUFFIX,kuaishouzt.com,REJECT-DROP
+AND,((DOMAIN-SUFFIX,kuaishouzt.com),(PROTOCOL,QUIC)),REJECT-DROP
+DOMAIN-SUFFIX,open.e.kuaishou.com,REJECT-DROP
+AND,((DOMAIN-SUFFIX,open.e.kuaishou.com),(PROTOCOL,QUIC)),REJECT-DROP
+DOMAIN-SUFFIX,kwaiad.com,REJECT-DROP
+AND,((DOMAIN-SUFFIX,kwaiad.com),(PROTOCOL,QUIC)),REJECT-DROP
+DOMAIN-SUFFIX,adkwai.com,REJECT-DROP
+AND,((DOMAIN-SUFFIX,adkwai.com),(PROTOCOL,QUIC)),REJECT-DROP
 
 [URL Rewrite]
 # 穿山甲广告 SDK：直接拒绝
