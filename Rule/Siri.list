@@ -1,0 +1,13 @@
+# Siri 核心语音 · 必须直连（DIRECT）
+# 原因：走海外代理或 Fake-IP 会让 Siri 报错「我碰到了一点问题，请再试一次」
+# 配套：需在 [General] 加 always-real-ip，否则 Fake-IP 同样会导致报错
+# 更新：2026-11-09
+
+DOMAIN-SUFFIX,guzzoni.apple.com
+DOMAIN-SUFFIX,siri.apple.com
+DOMAIN,dejavu.apple.com
+DOMAIN,sequoia.apple.com
+DOMAIN-SUFFIX,smoot.apple.com
+
+# iCloud 私有代理网关（走直连更稳，避免同步异常）
+DOMAIN-SUFFIX,gateway.icloud.com
