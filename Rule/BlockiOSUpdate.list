@@ -1,0 +1,7 @@
+# 屏蔽 iOS 系统更新
+# 来源：https://raw.githubusercontent.com/ddgksf2013/Filter/refs/heads/master/BlockiOSUpdate.list
+# 2026-11-11：ddgksf2013 原地址 Surge 下载失败（"The file does not exist"），转存至本仓库
+DOMAIN,gdmf.apple.com
+DOMAIN,mesu.apple.com
+DOMAIN,updates-http.cdn-apple.com
+DOMAIN,xp.apple.com
