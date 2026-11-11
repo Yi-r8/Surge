@@ -4,10 +4,16 @@
 #!homepage=https://github.com/ZenmoFeiShi/Qx/blob/main/KuAn.snippet
 #!category=去广告
 #!system=ios
-#!version=2026-11-09-v5
+#!version=2026-11-10-v6
 #!openUrl=https://www.coolapk.com/
 
 # ============ 版本说明 ============
+# v6（2026-11-10）紧急修正：v5 把 tnc3-alisc1.zijieapi.com 写成了
+#   DOMAIN-SUFFIX,zijieapi.com（整域），连带 zijieapi.net 一并拦掉，
+#   结果抖音的主接口（get_domains、ma5 QUIC API、polaris）全被拦，
+#   抖音打不开/刷不出内容，开屏“消失”只是连不上服务器的副作用。
+#   改为只拦精确主机 DOMAIN,tnc3-alisc1.zijieapi.com（+ QUIC），
+#   删掉 zijieapi.net；抖音穿山甲开屏仍由穿山甲域名规则拦截。
 # v5（2026-11-09）本次修正：
 #   1. 【新增域名】补上 api-access.pangolin-sdk-toutiao1.com
 #      抓包 100 条请求发现，该域名被请求 9 次，是穿山甲的备用域。
@@ -43,8 +49,10 @@ AND,((DOMAIN-SUFFIX,pangle.io),(PROTOCOL,QUIC)),REJECT-DROP
 DOMAIN,ad.toutiao.com,REJECT-DROP
 AND,((DOMAIN,ad.toutiao.com),(PROTOCOL,QUIC)),REJECT-DROP
 # 字节域名调度（SDK 用它换取可用广告域名，会绕过域名拦截）
-DOMAIN-SUFFIX,zijieapi.com,REJECT-DROP
-DOMAIN-SUFFIX,zijieapi.net,REJECT-DROP
+# 注意：只拦精确主机。zijieapi.com 是字节主接口域（抖音 get_domains、
+# ma5 API、polaris 都走这里），写成 DOMAIN-SUFFIX 会把抖音整个拦掉。
+DOMAIN,tnc3-alisc1.zijieapi.com,REJECT-DROP
+AND,((DOMAIN,tnc3-alisc1.zijieapi.com),(PROTOCOL,QUIC)),REJECT-DROP
 
 # ============ 优量汇 / 腾讯广告（GDT）============
 DOMAIN-SUFFIX,gdt.qq.com,REJECT-DROP
