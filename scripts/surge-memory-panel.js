@@ -89,7 +89,9 @@ function render(memBytes, uptimeSec, activeReq, dnsCache) {
   $done({
     title: "Surge 内存",
     content: lines.join("\n"),
-    icon: "memorychip",
+    // 面板图标只能用 SF Symbol 名称，没有 Surge 标志这个符号；
+    // waveform.path 是连贯的波形线，和 Surge 的波浪标志最接近。
+    icon: "waveform.path",
     "icon-color": colorFor(mb),
   });
 }
