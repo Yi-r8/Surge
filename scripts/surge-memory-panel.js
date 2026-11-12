@@ -1,13 +1,7 @@
 // Surge 内存面板脚本（type=generic，供 [Panel] 调用）
-// 两个面板共用这一个脚本，按 $input.panelName 分流：
-//   “Surge 内存”——经典面板：一条进度条显示当前/峰值占用。
-//   “Surge 内存详情”——详情面板：同一条进度条 + 占用构成的条数明细
-//   （DNS 缓存、虚拟 IP、活动请求、临时规则、封禁）。
-// 注意：Surge 只报内存总占用，不报各部分的 MB 明细，所以详情面板
-// 只能显示各部分的条数/个数，各占多少 MB 是拿不到的，不要硬编。
 // 单个面板，一条进度条显示两种占用，全部用统一的横线条形字符：
-//   ▬ 粗横条 = 当前占用
-//   ┅ 细虚线 = 从当前值延伸到峰值的那一段
+//   ━ 粗实线 = 当前占用
+//   ┅ 粗虚线 = 从当前值延伸到峰值的那一段
 //   ─ 细实线 = 未用部分
 // 注意：█▓░ 在 iOS 字体下 ░ 会渲染成带缝小格子、和实心条拼着违和；
 // emoji 方块用户觉得不好看。制表横线字符能无缝连成一条线，形状统一。
@@ -56,8 +50,9 @@ function colorFor(mb) {
   return "#34C759"; // 绿：正常
 }
 
-function trackPeak(mb, uptimeSec) {
-  // 峰值跟踪：读出旧峰值，引擎重启则重置；两个面板共用同一个 key。
+function render(memBytes, uptimeSec, activeReq, dnsCache) {
+  var mb = memBytes / 1048576;
+  // 峰值跟踪：读出旧峰值，引擎重启则重置
   var peak = mb;
   try {
     var raw = $persistentStore.read(PEAK_KEY);
@@ -79,12 +74,6 @@ function trackPeak(mb, uptimeSec) {
       PEAK_KEY
     );
   } catch (e) {}
-  return peak;
-}
-
-function render(memBytes, uptimeSec, activeReq, dnsCache) {
-  var mb = memBytes / 1048576;
-  var peak = trackPeak(mb, uptimeSec);
 
   var pct = ((mb / LIMIT_MB) * 100).toFixed(1);
   var peakPct = ((peak / LIMIT_MB) * 100).toFixed(1);
@@ -180,114 +169,4 @@ function tryMcp() {
   }
 }
 
-// ============ 详情面板 ============
-// 优先走 /v1/mcp 的 dump_runtime_data（一次拿到全部计数字段），
-// 拿不到时回退 /v1/metrics（虚拟 IP / 临时规则两项没有，显示 —）。
-function renderDetail(d) {
-  var mb = d.mem / 1048576;
-  var peak = trackPeak(mb, d.uptime);
-  var pct = ((mb / LIMIT_MB) * 100).toFixed(1);
-  var peakPct = ((peak / LIMIT_MB) * 100).toFixed(1);
-  var num = function (v, unit) {
-    return v == null ? "—" : v + " " + unit;
-  };
-  var lines = [
-    "▬▬▬ 当前 " + mb.toFixed(1) + " MB (" + pct + "%)",
-    "┅┅┅ 峰值 " + peak.toFixed(1) + " MB (" + peakPct + "%)",
-    dualBar(mb / LIMIT_MB, peak / LIMIT_MB, mb, peak),
-    "DNS 缓存 " + num(d.dns, "条") + " | 虚拟 IP " + num(d.vip, "条"),
-    "活动请求 " + num(d.activeReq, "个") + " | 临时规则 " + num(d.tempRules, "条"),
-    "封禁 " + num(d.bans, "个") + " | 运行 " + (d.uptime != null ? fmtUptime(d.uptime) : "—"),
-  ];
-  $done({
-    title: "Surge 内存详情",
-    content: lines.join("\n"),
-    icon: "list.bullet",
-    "icon-color": colorFor(mb),
-  });
-}
-
-function failDetail(msg) {
-  $done({ title: "Surge 内存详情", content: "读取失败：" + msg, style: "error" });
-}
-
-function detailViaMetrics() {
-  try {
-    $httpAPI("GET", "/v1/metrics", null, function (result) {
-      var text = null;
-      if (typeof result === "string") text = result;
-      else if (result && typeof result.body === "string") text = result.body;
-      else if (result && typeof result.data === "string") text = result.data;
-      if (text) {
-        var m = /surge_memory_bytes\s+(\d+)/.exec(text);
-        if (m) {
-          var up = /surge_uptime_seconds\s+([\d.]+)/.exec(text);
-          var ar = /surge_active_requests\s+(\d+)/.exec(text);
-          var dc = /surge_dns_cache_entries\s+(\d+)/.exec(text);
-          var bn = /surge_active_bans\s+(\d+)/.exec(text);
-          renderDetail({
-            mem: parseInt(m[1], 10),
-            uptime: up ? parseFloat(up[1]) : null,
-            activeReq: ar ? parseInt(ar[1], 10) : null,
-            dns: dc ? parseInt(dc[1], 10) : null,
-            vip: null,
-            tempRules: null,
-            bans: bn ? parseInt(bn[1], 10) : null,
-          });
-          return;
-        }
-      }
-      failDetail("无内存数据");
-    });
-  } catch (e) {
-    failDetail("接口不可用");
-  }
-}
-
-function detailViaMcp() {
-  try {
-    $httpAPI(
-      "POST",
-      "/v1/mcp",
-      {
-        jsonrpc: "2.0",
-        id: 1,
-        method: "tools/call",
-        params: { name: "dump_runtime_data", arguments: { type: "performance" } },
-      },
-      function (result) {
-        try {
-          var c =
-            result && result.result && result.result.content && result.result.content[0];
-          var data = c && c.text ? JSON.parse(c.text) : null;
-          var mem = data && (data["memory-bytes"] || data.memoryBytes);
-          if (mem) {
-            renderDetail({
-              mem: mem,
-              uptime: data.uptime != null ? data.uptime : null,
-              activeReq: data["active-requests"],
-              dns: data["dns-cache-entries"],
-              vip: data["virtual-ip-entries"],
-              tempRules: data["temporary-rules"],
-              bans: data["active-bans"],
-            });
-          } else {
-            detailViaMetrics();
-          }
-        } catch (e2) {
-          detailViaMetrics();
-        }
-      }
-    );
-  } catch (e) {
-    detailViaMetrics();
-  }
-}
-
-// 入口：按面板名分流；拿不到 $input 时默认经典面板。
-var isDetail = false;
-try {
-  isDetail = $input && $input.panelName === "Surge 内存详情";
-} catch (e) {}
-if (isDetail) detailViaMcp();
-else tryMetrics();
+tryMetrics();

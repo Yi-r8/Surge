@@ -1,18 +1,12 @@
 #!name=Surge 内存面板
-#!desc=在策略选择视图显示 Surge 引擎内存：经典面板一条横线进度条（粗实线当前占用、粗虚线延伸到峰值）；详情面板在此基础上加占用构成的条数明细（DNS 缓存、虚拟 IP、活动请求、临时规则、封禁）；iOS 需有效订阅
+#!desc=在策略选择视图用一个面板显示 Surge 引擎内存：一条横线进度条，粗实线是当前占用、粗虚线延伸到峰值；iOS 需有效订阅
 #!author=小慧
 #!homepage=https://github.com/Yi-r8/Surge/blob/main/sgmodule/SurgeMemoryPanel.sgmodule
 #!category=工具
 #!system=ios
-#!version=2026-11-12-v9
+#!version=2026-11-12-v8
 
 # ============ 版本说明 ============
-# v9（2026-11-12）：新增“Surge 内存详情”面板，和经典面板共用一个脚本
-#   （按面板名分流）：同一条进度条 + 占用构成的条数明细——DNS 缓存、
-#   虚拟 IP、活动请求、临时规则、封禁。数据优先走 /v1/mcp 的
-#   dump_runtime_data，失败回退 /v1/metrics（后者没有虚拟 IP / 临时规则
-#   两项，显示 —）。注意：Surge 只报内存总占用，不报各部分的 MB 明细，
-#   所以详情面板显示的是各部分的条数，各占多少 MB 拿不到。经典面板不动。
 # v8（2026-11-12）：图标改成 internaldrive.fill（硬盘图标，表明存储）；
 #   当前段改成更粗的 ▬ 横条，峰值段保持 ┅ 细虚线（半透明感），
 #   未用段保持 ─ 细轨道。
@@ -35,13 +29,11 @@
 # /v1/metrics 的 surge_memory_bytes，失败时改调 /v1/mcp 的
 # dump_runtime_data。update-interval=60：每次切到策略选择视图
 # 且超过 60 秒未更新时自动刷新；点面板刷新按钮立即刷新。
-# 详情面板优先调 /v1/mcp（一次拿到全部计数字段），失败回退
-# /v1/metrics。注意：手册说 iOS 上信息面板需要有效订阅（2021-09-22 之后到期），
+# 注意：手册说 iOS 上信息面板需要有效订阅（2021-09-22 之后到期），
 # 订阅过期时面板不显示，不影响其他功能。
 
 [Panel]
 Surge 内存 = title="Surge 内存",content="加载中…",script-name=surge-memory-panel,update-interval=60
-Surge 内存详情 = title="Surge 内存详情",content="加载中…",script-name=surge-memory-panel,update-interval=60
 
 [Script]
 surge-memory-panel = type=generic,script-path=https://raw.githubusercontent.com/Yi-r8/Surge/main/scripts/surge-memory-panel.js
