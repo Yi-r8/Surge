@@ -4,9 +4,12 @@
 #!homepage=https://github.com/Yi-r8/Surge/blob/main/sgmodule/SurgeMemoryPanel.sgmodule
 #!category=工具
 #!system=ios
-#!version=2026-11-12-v7
+#!version=2026-11-12-v8
 
 # ============ 版本说明 ============
+# v8（2026-11-12）：图标改成 internaldrive.fill（硬盘图标，表明存储）；
+#   当前段改成更粗的 ▬ 横条，峰值段保持 ┅ 细虚线（半透明感），
+#   未用段保持 ─ 细轨道。
 # v7（2026-11-12）：图标改成 waveform.path（连贯波形线，和 Surge 的波浪
 #   标志最接近；面板图标只能用 SF Symbol 名称，没有 Surge 标志这个符号）。
 # v6（2026-11-12）：修进度条算法——格数直接按原始占用比例算，不再先把
