@@ -20,14 +20,20 @@ function fmtUptime(sec) {
   return (sec / 86400).toFixed(1) + " 天";
 }
 
-// 双段进度条：0→当前画 ━，当前→峰值画 ┅，其余画 ─
-function dualBar(curPct, peakPct) {
-  var cur = Math.round((curPct / 100) * BAR_WIDTH);
-  var peak = Math.round((peakPct / 100) * BAR_WIDTH);
+// 双段进度条：直接用原始占用比例算格数，不要先把百分比四舍五入
+// 成整数再算——两次取整会把峰值和当前的差距吃掉（比如 23.3 和
+// 23.7 都变成 47%，虚线段就画不出来了）。
+// 0→当前画 ━，当前→峰值画 ┅，其余画 ─；峰值高于当前时至少留一格
+// 虚线段，保证差距可见。
+function dualBar(curFrac, peakFrac, curMB, peakMB) {
+  var cur = Math.round(curFrac * BAR_WIDTH);
+  var peak = Math.round(peakFrac * BAR_WIDTH);
   if (cur > BAR_WIDTH) cur = BAR_WIDTH;
   if (peak > BAR_WIDTH) peak = BAR_WIDTH;
   if (cur < 0) cur = 0;
   if (peak < 0) peak = 0;
+  if (peak < cur) peak = cur;
+  if (peakMB > curMB && peak === cur && peak < BAR_WIDTH) peak = cur + 1;
   var s = "";
   for (var i = 0; i < BAR_WIDTH; i++) {
     if (i < cur) s += "━";
@@ -68,12 +74,12 @@ function render(memBytes, uptimeSec, activeReq, dnsCache) {
     );
   } catch (e) {}
 
-  var pct = Math.round((mb / LIMIT_MB) * 100);
-  var peakPct = Math.round((peak / LIMIT_MB) * 100);
+  var pct = ((mb / LIMIT_MB) * 100).toFixed(1);
+  var peakPct = ((peak / LIMIT_MB) * 100).toFixed(1);
   var lines = [
     "━━━ 当前 " + mb.toFixed(1) + " MB (" + pct + "%)",
     "┅┅┅ 峰值 " + peak.toFixed(1) + " MB (" + peakPct + "%)",
-    dualBar(pct, peakPct),
+    dualBar(mb / LIMIT_MB, peak / LIMIT_MB, mb, peak),
   ];
   var extra = [];
   if (uptimeSec != null) extra.push("运行 " + fmtUptime(uptimeSec));
