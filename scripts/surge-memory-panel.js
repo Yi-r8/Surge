@@ -1,14 +1,16 @@
 // Surge 内存面板脚本（type=generic，供 [Panel] 调用）
-// 单个面板，一条进度条显示两种占用：
-//   █ 实心段 = 当前占用（绿色含义）
-//   ▓ 阴影段 = 从当前值延伸到峰值的那一段（半透明红色含义）
-//   ░ 空白段 = 未用部分
+// 单个面板，一条进度条显示两种占用，全部用同尺寸的彩色方块：
+//   🟩 绿色方块 = 当前占用
+//   🟥 红色方块 = 从当前值延伸到峰值的那一段
+//   ⬜ 白色方块 = 未用部分
+// 注意：不要用 █▓░ 这类方块字符——iOS 字体下 ░ 会渲染成带缝的
+// 小格子，和实心条拼在一起很违和；emoji 方块尺寸统一且自带颜色。
 // 峰值用 $persistentStore 持久化，检测到引擎重启（uptime 变小）自动重置。
 // 数据源：$httpAPI 调 /v1/metrics（Prometheus 纯文本）；
 // 若拿不到，再调 /v1/mcp 的 dump_runtime_data（JSON）。
 var LIMIT_MB = 50; // iOS Network Extension 内存上限约 50 MB
 var PEAK_KEY = "surge-memory-peak-v1";
-var BAR_WIDTH = 16;
+var BAR_WIDTH = 12;
 
 function fmtUptime(sec) {
   sec = Math.floor(sec);
@@ -18,7 +20,7 @@ function fmtUptime(sec) {
   return (sec / 86400).toFixed(1) + " 天";
 }
 
-// 双段进度条：0→当前画 █，当前→峰值画 ▓，其余画 ░
+// 双段进度条：0→当前画 🟩，当前→峰值画 🟥，其余画 ⬜
 function dualBar(curPct, peakPct) {
   var cur = Math.round((curPct / 100) * BAR_WIDTH);
   var peak = Math.round((peakPct / 100) * BAR_WIDTH);
@@ -28,9 +30,9 @@ function dualBar(curPct, peakPct) {
   if (peak < 0) peak = 0;
   var s = "";
   for (var i = 0; i < BAR_WIDTH; i++) {
-    if (i < cur) s += "█";
-    else if (i < peak) s += "▓";
-    else s += "░";
+    if (i < cur) s += "🟩";
+    else if (i < peak) s += "🟥";
+    else s += "⬜";
   }
   return s;
 }
@@ -69,15 +71,8 @@ function render(memBytes, uptimeSec, activeReq, dnsCache) {
   var pct = Math.round((mb / LIMIT_MB) * 100);
   var peakPct = Math.round((peak / LIMIT_MB) * 100);
   var lines = [
-    "█ 当前 " +
-      mb.toFixed(1) +
-      " MB (" +
-      pct +
-      "%) · ▓ 峰值 " +
-      peak.toFixed(1) +
-      " MB (" +
-      peakPct +
-      "%)",
+    "🟩 当前 " + mb.toFixed(1) + " MB (" + pct + "%)",
+    "🟥 峰值 " + peak.toFixed(1) + " MB (" + peakPct + "%)",
     dualBar(pct, peakPct),
   ];
   var extra = [];
