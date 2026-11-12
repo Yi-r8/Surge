@@ -1,8 +1,12 @@
 // Surge 内存面板脚本（type=generic，供 [Panel] 调用）
+// 两个面板共用一个脚本，按 $input.panelName 区分：
+//   “当前内存”：当前占用 + 进度条，图标颜色随占用变（绿/橙/红）
+//   “峰值内存”：本次引擎启动以来的峰值占用 + 进度条，图标紫色
+// 峰值用 $persistentStore 持久化，检测到引擎重启（uptime 变小）自动重置。
 // 数据源：$httpAPI 调 /v1/metrics（Prometheus 纯文本）；
 // 若拿不到，再调 /v1/mcp 的 dump_runtime_data（JSON）。
-// 返回 {title, content, style} 给信息面板显示。
 var LIMIT_MB = 50; // iOS Network Extension 内存上限约 50 MB
+var PEAK_KEY = "surge-memory-peak-v1";
 
 function fmtUptime(sec) {
   sec = Math.floor(sec);
@@ -12,20 +16,82 @@ function fmtUptime(sec) {
   return (sec / 86400).toFixed(1) + " 天";
 }
 
+function bar(pct, width, fill, empty) {
+  var f = Math.round((pct / 100) * width);
+  if (f > width) f = width;
+  if (f < 0) f = 0;
+  var s = "";
+  for (var i = 0; i < width; i++) s += i < f ? fill : empty;
+  return s;
+}
+
+function colorFor(mb) {
+  if (mb >= 40) return "#FF3B30"; // 红：接近上限
+  if (mb >= 30) return "#FF9500"; // 橙：偏高
+  return "#34C759"; // 绿：正常
+}
+
 function render(memBytes, uptimeSec, activeReq, dnsCache) {
   var mb = memBytes / 1048576;
-  var pct = Math.round((mb / LIMIT_MB) * 100);
-  var style = "good";
-  if (mb >= 40) style = "error";
-  else if (mb >= 30) style = "alert";
-  else if (mb >= 20) style = "info";
-  var lines = ["内存：" + mb.toFixed(1) + " MB（" + pct + "% / " + LIMIT_MB + " MB）"];
-  var extra = [];
-  if (uptimeSec != null) extra.push("运行 " + fmtUptime(uptimeSec));
-  if (activeReq != null) extra.push("请求 " + activeReq);
-  if (dnsCache != null) extra.push("DNS 缓存 " + dnsCache);
-  if (extra.length) lines.push(extra.join(" | "));
-  $done({ title: "Surge 内存", content: lines.join("\n"), style: style });
+  // 峰值跟踪：读出旧峰值，引擎重启则重置
+  var peak = mb;
+  try {
+    var raw = $persistentStore.read(PEAK_KEY);
+    if (raw) {
+      var obj = JSON.parse(raw);
+      var storedUptime = obj.uptime;
+      if (
+        uptimeSec == null ||
+        storedUptime == null ||
+        uptimeSec >= storedUptime
+      ) {
+        peak = Math.max(mb, obj.peak || 0);
+      }
+    }
+  } catch (e) {}
+  try {
+    $persistentStore.write(
+      JSON.stringify({ peak: peak, uptime: uptimeSec }),
+      PEAK_KEY
+    );
+  } catch (e) {}
+
+  var panelName = "";
+  try {
+    panelName = ($input && $input.panelName) || "";
+  } catch (e) {}
+
+  if (panelName.indexOf("峰值") !== -1) {
+    var peakPct = Math.round((peak / LIMIT_MB) * 100);
+    $done({
+      title: "峰值内存",
+      content:
+        peak.toFixed(1) +
+        " MB（" +
+        peakPct +
+        "%）\n" +
+        bar(peakPct, 20, "▓", "░"),
+      icon: "chart.bar.fill",
+      "icon-color": "#AF52DE",
+    });
+  } else {
+    var pct = Math.round((mb / LIMIT_MB) * 100);
+    var lines = [
+      mb.toFixed(1) + " MB（" + pct + "% / " + LIMIT_MB + " MB）",
+      bar(pct, 20, "█", "░"),
+    ];
+    var extra = [];
+    if (uptimeSec != null) extra.push("运行 " + fmtUptime(uptimeSec));
+    if (activeReq != null) extra.push("请求 " + activeReq);
+    if (dnsCache != null) extra.push("DNS " + dnsCache);
+    if (extra.length) lines.push(extra.join(" | "));
+    $done({
+      title: "当前内存",
+      content: lines.join("\n"),
+      icon: "memorychip",
+      "icon-color": colorFor(mb),
+    });
+  }
 }
 
 function fail(msg) {

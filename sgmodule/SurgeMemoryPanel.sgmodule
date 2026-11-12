@@ -1,22 +1,31 @@
 #!name=Surge 内存面板
-#!desc=在策略选择视图显示 Surge 引擎内存占用（/v1/metrics），30MB 变黄、40MB 变红；iOS 需有效订阅
+#!desc=在策略选择视图显示 Surge 引擎当前/峰值内存占用，各带进度条、颜色不同；iOS 需有效订阅
 #!author=小慧
 #!homepage=https://github.com/Yi-r8/Surge/blob/main/sgmodule/SurgeMemoryPanel.sgmodule
 #!category=工具
 #!system=ios
-#!version=2026-11-12-v1
+#!version=2026-11-12-v2
 
+# ============ 版本说明 ============
+# v2（2026-11-12）：两个面板——“当前内存”（进度条 █，图标绿/橙/红随占用变）
+#   和“峰值内存”（进度条 ▓，图标紫色）；峰值用 $persistentStore 持久化，
+#   引擎重启自动重置。两个面板共用一个 generic 脚本，按 panelName 区分。
+# v1（2026-11-12）：单个面板，只有当前占用。
+#
 # ============ 说明 ============
 # 信息面板（Information Panel）显示在 iOS 的策略选择视图里。
 # 面板内容由 generic 脚本生成：脚本用 $httpAPI（无需鉴权）读
 # /v1/metrics 的 surge_memory_bytes，失败时改调 /v1/mcp 的
 # dump_runtime_data。update-interval=60：每次切到策略选择视图
 # 且超过 60 秒未更新时自动刷新；点面板刷新按钮立即刷新。
+# 注意：面板内容是纯文本，进度条用方块字符画；颜色体现在面板
+# 图标上（icon-color），文字本身不能分段着色。
 # 注意：手册说 iOS 上信息面板需要有效订阅（2021-09-22 之后到期），
 # 订阅过期时面板不显示，不影响其他功能。
 
 [Panel]
-内存占用 = title="Surge 内存",content="加载中…",style=info,script-name=surge-memory-panel,update-interval=60
+当前内存 = title="当前内存",content="加载中…",script-name=surge-memory-panel,update-interval=60
+峰值内存 = title="峰值内存",content="加载中…",script-name=surge-memory-panel,update-interval=60
 
 [Script]
 surge-memory-panel = type=generic,script-path=https://raw.githubusercontent.com/Yi-r8/Surge/main/scripts/surge-memory-panel.js
