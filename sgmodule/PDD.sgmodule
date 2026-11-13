@@ -5,13 +5,16 @@
 #!icon=https://rucu6.pages.dev/Icons/app/pinduoduo.png
 #!category=去广告
 #!system=iOS
-#!version=2026-11-13-v6
+#!version=2026-11-13-v7
 #
-# v6（2026-11-13，小慧）：fork 脚本新增 all_top_opts 过滤，去掉顶部“最快明天达”
-# “政府补贴”两个推广 tab（推荐和品类 tab 保留）。刷新恢复问题实测结论（会话
-# 2026-11-13-231833）：下拉刷新重新拉取同一 hub 接口，脚本改写正常生效，下发
-# 数据里已无 timeline/icon_set——恢复是拼多多客户端自身的缓存/渲染行为，网络层
-# 已干净；更新后需彻底关掉拼多多冷启动，让页面模型重建。回滚：v5 commit edd3547e
+# v7（2026-11-13，小慧）：刷新恢复问题——用户录屏（23:24）显示下拉刷新后横幅/
+# 拼小圈/图标行/推广 tab/5 个底栏全回来了，即刷新那次响应完全绕过了脚本；清
+# 缓存没用，v6 的“客户端缓存”判断纠正为：刷新响应走了脚本没覆盖到的路径。
+# 本机 [General] 无 auto-quic-block 行（默认 true），[MITM] h2=true。v7 堵两个
+# 绕过口：(1) hub 脚本规则放宽到 api.pinduoduo.com 与 api.yangkeduo.com 双域名
+# （开屏重写已证实两域名同源同接口，MITM 也早已覆盖两域名）；(2) 给 3 个 MITM
+# 主机各加一条 QUIC REJECT 规则，纵深防御，迫使回落 TCP。含 v6 的 tab 过滤
+# （v6 已推但手机未装，v7 一次装全）。回滚：v5 commit edd3547e / v6 d9cb278a
 # v5（2026-11-13，小慧）：纠正 v3 注释——拼小圈不是本地模板，它就是 hub 响应里的
 # timeline 模块（home_screen_skin.timeline.icon_image = pinxiaoquan.png，
 # module_order 含 timeline，timeline_visible=true，两轮抓包实测）。fork 脚本新增：
@@ -58,6 +61,10 @@ AND,((DOMAIN,th-b.pinduoduo.com),(PROTOCOL,QUIC)),REJECT
 AND,((DOMAIN,th.pinduoduo.com),(PROTOCOL,QUIC)),REJECT
 AND,((DOMAIN,titan.pinduoduo.com),(PROTOCOL,QUIC)),REJECT
 AND,((DOMAIN,titan-mt.pinduoduo.com),(PROTOCOL,QUIC)),REJECT
+# 防脚本绕过：3 个 MITM 主机的 QUIC 也拦掉，迫使走 TCP，脚本才能改到响应
+AND,((DOMAIN,api.pinduoduo.com),(PROTOCOL,QUIC)),REJECT
+AND,((DOMAIN,api.yangkeduo.com),(PROTOCOL,QUIC)),REJECT
+AND,((DOMAIN,m.pinduoduo.net),(PROTOCOL,QUIC)),REJECT
 IP-CIDR,81.69.105.47/32,REJECT,no-resolve
 IP-CIDR,81.69.104.17/32,REJECT,no-resolve
 IP-CIDR,81.69.104.33/32,REJECT,no-resolve
@@ -96,7 +103,7 @@ http-response-jq (?i)^https://api\.pinduoduo\.com/api/philo/personal/hub\? 'if t
 http-response-jq (?i)^https://api\.pinduoduo\.com/search 'if type == "object" then del(.expansion) else . end'
 
 [Script]
-拼多多精简首页 = type=http-response,pattern=^https://api\.pinduoduo\.com/api/alexa/homepage/hub(/refresh)?\?,requires-body=true,script-path=https://raw.githubusercontent.com/Yi-r8/Surge/main/scripts/pinduoduo-hub.js
+拼多多精简首页 = type=http-response,pattern=^https://api\.(?:pinduoduo|yangkeduo)\.com/api/alexa/homepage/hub(/refresh)?\?,requires-body=true,script-path=https://raw.githubusercontent.com/Yi-r8/Surge/main/scripts/pinduoduo-hub.js
 拼多多精简评价页 = type=http-response,pattern=^https://m\.pinduoduo\.net/comment_result\.html\?,requires-body=true,script-path=https://rucu6.pages.dev/Scripts/pinduoduo.js
 拼多多精简取件页 = type=http-response,pattern=^https://m\.pinduoduo\.net/mdkd/package\?,requires-body=true,script-path=https://rucu6.pages.dev/Scripts/pinduoduo.js
 拼多多净化弹窗 = type=http-response,pattern=^https://api\.pinduoduo\.com/api/(aquarius|flow)/hungary/(window/)?global/,requires-body=true,script-path=https://raw.githubusercontent.com/ZenmoFeiShi/Qx/refs/heads/main/Pinduoduo.js
