@@ -5,16 +5,16 @@
 #!icon=https://rucu6.pages.dev/Icons/app/pinduoduo.png
 #!category=去广告
 #!system=iOS
-#!version=2026-11-13-v7
+#!version=2026-11-13-v8
 #
-# v7（2026-11-13，小慧）：刷新恢复问题——用户录屏（23:24）显示下拉刷新后横幅/
-# 拼小圈/图标行/推广 tab/5 个底栏全回来了，即刷新那次响应完全绕过了脚本；清
-# 缓存没用，v6 的“客户端缓存”判断纠正为：刷新响应走了脚本没覆盖到的路径。
-# 本机 [General] 无 auto-quic-block 行（默认 true），[MITM] h2=true。v7 堵两个
-# 绕过口：(1) hub 脚本规则放宽到 api.pinduoduo.com 与 api.yangkeduo.com 双域名
-# （开屏重写已证实两域名同源同接口，MITM 也早已覆盖两域名）；(2) 给 3 个 MITM
-# 主机各加一条 QUIC REJECT 规则，纵深防御，迫使回落 TCP。含 v6 的 tab 过滤
-# （v6 已推但手机未装，v7 一次装全）。回滚：v5 commit edd3547e / v6 d9cb278a
+# v8（2026-11-13，小慧）：刷新恢复的根因找到——转换语义错了。Loon 插件的
+# reject_dict(200) 是回 HTTP 200 + 空 JSON {}，App 正常解析、保留已净化的页面；
+# Surge 的 `_ reject` 回的是错误响应，刷新时 App 走错误处理、整页恢复如初。
+# 证据链：重装拼多多（全新沙盒）刷新仍恢复，快照结论被证伪；逐行对过 Loon 插件，
+# 除 reject 语义外 Surge 覆盖只多不少；Surge 手册的 [URL Rewrite] 只有 reject，
+# 没有 reject-dict——等价做法是 [Map Local] data-type=text data="{}"（手册原例，
+# KuAn 模块同款写法已在手机上验证）。v8 把 13 条 _ reject 全改成 Map Local 回
+# 200 + {} + application/json，[URL Rewrite] 段撤销，其余不动。回滚：v7 e3a36391
 # v5（2026-11-13，小慧）：纠正 v3 注释——拼小圈不是本地模板，它就是 hub 响应里的
 # timeline 模块（home_screen_skin.timeline.icon_image = pinxiaoquan.png，
 # module_order 含 timeline，timeline_visible=true，两轮抓包实测）。fork 脚本新增：
@@ -82,20 +82,21 @@ IP-CIDR,183.194.214.20/32,REJECT,no-resolve
 IP-CIDR,183.194.214.21/32,REJECT,no-resolve
 IP-CIDR,117.185.244.145/32,REJECT,no-resolve
 
-[URL Rewrite]
-(?i)^https://api\.(?:pinduoduo|yangkeduo)\.com/api/cappuccino/splash\? _ reject
-(?i)^https://api\.pinduoduo\.com/api/alexa/(?:cells/hub|goods/back_up) _ reject
-(?i)^https://api\.pinduoduo\.com/api/aquarius/hungary/global/homepage\? _ reject
-(?i)^https://api\.pinduoduo\.com/api/brand-olay/goods_detail/bybt_guide _ reject
-(?i)^https://api\.pinduoduo\.com/api/buffon/nasus/recommend\? _ reject
-(?i)^https://api\.pinduoduo\.com/api/caterham/v3/query/ _ reject
-^https://api\.pinduoduo\.com/api/dunkirk/subaru/goods_list_v2\? _ reject
-(?i)^https://api\.pinduoduo\.com/api/engels/reviews/require/append _ reject
-(?i)^https://api\.pinduoduo\.com/api/express/post/landing_page/ad/recommend_goods_list/pickup_identity_code\? _ reject
-(?i)^https://api\.pinduoduo\.com/api/flow/hungary/window/global/v2\? _ reject
-(?i)^https://api\.pinduoduo\.com/api/zaire_biz/chat/resource/get_list_data _ reject
-(?i)^https://api\.pinduoduo\.com/api/xrec/goods_rec/pay_after_use_v2\? _ reject
-(?i)^https://api\.pinduoduo\.com/search_hotquery\? _ reject
+[Map Local]
+# 等价于 Loon 的 reject_dict(200)：回 HTTP 200 + 空 JSON，App 正常解析、不走错误处理
+(?i)^https://api\.(?:pinduoduo|yangkeduo)\.com/api/cappuccino/splash\? data-type=text data="{}" status-code=200 header="Content-Type: application/json"
+(?i)^https://api\.pinduoduo\.com/api/alexa/(?:cells/hub|goods/back_up) data-type=text data="{}" status-code=200 header="Content-Type: application/json"
+(?i)^https://api\.pinduoduo\.com/api/aquarius/hungary/global/homepage\? data-type=text data="{}" status-code=200 header="Content-Type: application/json"
+(?i)^https://api\.pinduoduo\.com/api/brand-olay/goods_detail/bybt_guide data-type=text data="{}" status-code=200 header="Content-Type: application/json"
+(?i)^https://api\.pinduoduo\.com/api/buffon/nasus/recommend\? data-type=text data="{}" status-code=200 header="Content-Type: application/json"
+(?i)^https://api\.pinduoduo\.com/api/caterham/v3/query/ data-type=text data="{}" status-code=200 header="Content-Type: application/json"
+^https://api\.pinduoduo\.com/api/dunkirk/subaru/goods_list_v2\? data-type=text data="{}" status-code=200 header="Content-Type: application/json"
+(?i)^https://api\.pinduoduo\.com/api/engels/reviews/require/append data-type=text data="{}" status-code=200 header="Content-Type: application/json"
+(?i)^https://api\.pinduoduo\.com/api/express/post/landing_page/ad/recommend_goods_list/pickup_identity_code\? data-type=text data="{}" status-code=200 header="Content-Type: application/json"
+(?i)^https://api\.pinduoduo\.com/api/flow/hungary/window/global/v2\? data-type=text data="{}" status-code=200 header="Content-Type: application/json"
+(?i)^https://api\.pinduoduo\.com/api/zaire_biz/chat/resource/get_list_data data-type=text data="{}" status-code=200 header="Content-Type: application/json"
+(?i)^https://api\.pinduoduo\.com/api/xrec/goods_rec/pay_after_use_v2\? data-type=text data="{}" status-code=200 header="Content-Type: application/json"
+(?i)^https://api\.pinduoduo\.com/search_hotquery\? data-type=text data="{}" status-code=200 header="Content-Type: application/json"
 
 [Body Rewrite]
 http-response-jq (?i)^https://api\.pinduoduo\.com/api/oak/integration/render 'if type == "object" then del(.bottom_section_list, .ui.bottom_section, .ui.live_section.float_info) else . end'
