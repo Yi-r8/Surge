@@ -5,8 +5,13 @@
 #!icon=https://rucu6.pages.dev/Icons/app/pinduoduo.png
 #!category=去广告
 #!system=iOS
-#!version=2026-11-13-v4
+#!version=2026-11-13-v5
 #
+# v5（2026-11-13，小慧）：纠正 v3 注释——拼小圈不是本地模板，它就是 hub 响应里的
+# timeline 模块（home_screen_skin.timeline.icon_image = pinxiaoquan.png，
+# module_order 含 timeline，timeline_visible=true，两轮抓包实测）。fork 脚本新增：
+# timeline_visible=false + module_order 剔除 timeline + 删 home_screen_skin.timeline；
+# 其余逻辑不变，多多买菜/百亿补贴（dy_module）原样保留。回滚：v4 commit 4b78f1cb
 # v4（2026-11-13，小慧）：v3 的 hub jq 规则已确认在手机上加载（Body Rewrite 4 条）
 # 但图标行仍在——改把 icon_set 删除放进脚本（本接口上实测有效的改写路径），
 # fork RuCu6 脚本的 hub 分支为仓库内 scripts/pinduoduo-hub.js（仅启用 icon_set 删除，
