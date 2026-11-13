@@ -5,8 +5,12 @@
 #!icon=https://rucu6.pages.dev/Icons/app/pinduoduo.png
 #!category=去广告
 #!system=iOS
-#!version=2026-11-13-v3
+#!version=2026-11-13-v4
 #
+# v4（2026-11-13，小慧）：v3 的 hub jq 规则已确认在手机上加载（Body Rewrite 4 条）
+# 但图标行仍在——改把 icon_set 删除放进脚本（本接口上实测有效的改写路径），
+# fork RuCu6 脚本的 hub 分支为仓库内 scripts/pinduoduo-hub.js（仅启用 icon_set 删除，
+# 其余逻辑原样），首页脚本规则改指该文件；hub jq 规则撤销，其余 3 条 jq 保留
 # v3（2026-11-13，小慧）：两轮抓包实测（拼多多 8.31.0）后补规则——
 # 开屏 splash 与 cells/hub 的 reject、首页脚本改写均已验证生效；新增 jq 删首页
 # hub 响应的 result.icon_set（图标行，16 项，实测结构）；拼小圈行两轮抓包均未见
@@ -80,10 +84,9 @@ IP-CIDR,117.185.244.145/32,REJECT,no-resolve
 http-response-jq (?i)^https://api\.pinduoduo\.com/api/oak/integration/render 'if type == "object" then del(.bottom_section_list, .ui.bottom_section, .ui.live_section.float_info) else . end'
 http-response-jq (?i)^https://api\.pinduoduo\.com/api/philo/personal/hub\? 'if type == "object" then del(.monthly_card_entrance, .personal_banner, .personal_center_style_v2_vo, .icon_set.icons, .icon_set.top_personal_icons, .title_bar_items) else . end'
 http-response-jq (?i)^https://api\.pinduoduo\.com/search 'if type == "object" then del(.expansion) else . end'
-http-response-jq (?i)^https://api\.pinduoduo\.com/api/alexa/homepage/hub(/refresh)?\? 'if type == "object" then del(.result.icon_set) else . end'
 
 [Script]
-拼多多精简首页 = type=http-response,pattern=^https://api\.pinduoduo\.com/api/alexa/homepage/hub(/refresh)?\?,requires-body=true,script-path=https://rucu6.pages.dev/Scripts/pinduoduo.js
+拼多多精简首页 = type=http-response,pattern=^https://api\.pinduoduo\.com/api/alexa/homepage/hub(/refresh)?\?,requires-body=true,script-path=https://raw.githubusercontent.com/Yi-r8/Surge/main/scripts/pinduoduo-hub.js
 拼多多精简评价页 = type=http-response,pattern=^https://m\.pinduoduo\.net/comment_result\.html\?,requires-body=true,script-path=https://rucu6.pages.dev/Scripts/pinduoduo.js
 拼多多精简取件页 = type=http-response,pattern=^https://m\.pinduoduo\.net/mdkd/package\?,requires-body=true,script-path=https://rucu6.pages.dev/Scripts/pinduoduo.js
 拼多多净化弹窗 = type=http-response,pattern=^https://api\.pinduoduo\.com/api/(aquarius|flow)/hungary/(window/)?global/,requires-body=true,script-path=https://raw.githubusercontent.com/ZenmoFeiShi/Qx/refs/heads/main/Pinduoduo.js
