@@ -1,6 +1,7 @@
 // 拼多多首页精简（小慧 fork，2026-11-13）
 // 来源：RuCu6 pinduoduo.js（2026-09-26）的 /api/alexa/homepage/hub 分支，原样保留，
-// 仅启用被注释掉的 delete icon_set（删首页图标行），并关掉拼小圈行。
+// 仅启用被注释掉的 delete icon_set（删首页图标行），关掉拼小圈行（timeline 模块），
+// 并滤掉顶部“最快明天达”“政府补贴”两个推广 tab。
 // 拼小圈就是 hub 响应里的 timeline 模块——实测证据（拼多多 8.31.0 两轮抓包）：
 // home_screen_skin.timeline.icon_image 是 pinxiaoquan.png，module_order 里有 timeline，
 // timeline_visible=true；之前按“拼小圈/pxq/social”搜不到字段，误判为本地模板，纠正。
@@ -34,6 +35,10 @@ if (url.includes("/api/alexa/homepage/hub")) {
     }
     if (obj?.result?.home_screen_skin?.timeline) {
       delete obj.result.home_screen_skin.timeline;
+    }
+    // 顶部标签栏：去掉“最快明天达”“政府补贴”两个推广位，推荐和品类保留
+    if (Array.isArray(obj?.result?.all_top_opts)) {
+      obj.result.all_top_opts = obj.result.all_top_opts.filter((t) => !/最快明天达|政府补贴/.test(t?.opt_name ?? ""));
     }
     if (obj?.result?.search_bar_hot_query) {
       delete obj.result.search_bar_hot_query; // 搜索框填充词

@@ -5,8 +5,13 @@
 #!icon=https://rucu6.pages.dev/Icons/app/pinduoduo.png
 #!category=去广告
 #!system=iOS
-#!version=2026-11-13-v5
+#!version=2026-11-13-v6
 #
+# v6（2026-11-13，小慧）：fork 脚本新增 all_top_opts 过滤，去掉顶部“最快明天达”
+# “政府补贴”两个推广 tab（推荐和品类 tab 保留）。刷新恢复问题实测结论（会话
+# 2026-11-13-231833）：下拉刷新重新拉取同一 hub 接口，脚本改写正常生效，下发
+# 数据里已无 timeline/icon_set——恢复是拼多多客户端自身的缓存/渲染行为，网络层
+# 已干净；更新后需彻底关掉拼多多冷启动，让页面模型重建。回滚：v5 commit edd3547e
 # v5（2026-11-13，小慧）：纠正 v3 注释——拼小圈不是本地模板，它就是 hub 响应里的
 # timeline 模块（home_screen_skin.timeline.icon_image = pinxiaoquan.png，
 # module_order 含 timeline，timeline_visible=true，两轮抓包实测）。fork 脚本新增：
