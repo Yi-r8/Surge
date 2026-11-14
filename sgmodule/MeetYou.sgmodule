@@ -1,0 +1,30 @@
+#!name=美柚去广告
+#!desc=移除开屏广告、弹窗推广和信息流推广，移除青少年模式弹窗和我的页面推广。
+#!openUrl=https://apps.apple.com/app/id634896669
+#!author=可莉🅥[https://github.com/luestr/ProxyResource/blob/main/README.md]
+#!tag=去广告
+#!homepage=https://hub.kelee.one
+#!icon=https://raw.githubusercontent.com/luestr/IconResource/main/App_icon/120px/MeetYou.png
+#!version=2026-11-14-v1
+
+# v1（2026-11-14，小慧）：转换自可莉 MeetYou_remove_ads.lpx（2026-10-02）。
+# - [Rule] 两个广告域改用 REJECT-DROP + QUIC AND 规则（与本仓库其它模块一致，
+#   避免广告 SDK 重试风暴及 QUIC 绕过）。
+# - Loon 新语法 reject(404)（404 + 空 body）译为 [Map Local] 空 body + 404。
+# - response.json.delete 译为 [Body Rewrite] jq delpaths。
+# - 原插件正则带 /i，Surge 侧加 (?i) 前缀。
+
+[Rule]
+DOMAIN,ad.seeyouyima.com,REJECT-DROP
+AND,((DOMAIN,ad.seeyouyima.com),(PROTOCOL,QUIC)),REJECT-DROP
+DOMAIN,axxd.xmseeyouyima.com,REJECT-DROP
+AND,((DOMAIN,axxd.xmseeyouyima.com),(PROTOCOL,QUIC)),REJECT-DROP
+
+[Body Rewrite]
+http-response-jq (?i)^https:\/\/common\.seeyouyima\.com\/v2\/conf_list$ 'delpaths([["data","confList","Minor_mode_card"]])'
+
+[Map Local]
+(?i)^https:\/\/circle\.(xm)?seeyouyima\.com\/v\d\/article_recommend\? data-type=text data="" status-code=404
+
+[MITM]
+hostname = %APPEND% circle.seeyouyima.com, circle.xmseeyouyima.com, common.seeyouyima.com
