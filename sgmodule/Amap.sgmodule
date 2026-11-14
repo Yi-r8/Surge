@@ -1,12 +1,8 @@
 #!name=高德地图去广告
 #!desc=过滤高德地图开屏广告、各页面推广，精简我的页面。
-#!author=小慧 (魔改自可莉、RuCu6、kelv1n1n；Egern 转换参考 shengrui123)
-#!homepage=https://hub.kelee.one
-#!icon=https://raw.githubusercontent.com/luestr/IconResource/main/App_icon/120px/Amap.png
+#!author=R.zai (魔改自可莉、RuCu6、kelv1n1n；Egern 转换参考 shengrui123)
 #!category=去广告
-#!system=ios
 #!version=2026-11-14-v5
-#!date=2026-11-14
 #!openUrl=https://apps.apple.com/app/id461703208
 
 # v3（2026-11-08，小慧整理）：
