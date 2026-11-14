@@ -6,33 +6,6 @@
 #!version=2026-11-14-v16
 #!openUrl=https://apps.apple.com/app/id1044283059
 
-#
-# v12（2026-11-14，小慧）：推翻重做——以 QingRex/LoonKissSurge 的拼多多去广告
-# beta 版为底（用户实测刷新不恢复），仅加两条 hub jq：去拼小圈 timeline、去
-# 顶部最快明天达/政府补贴两个推广 tab。其余一字未动：无脚本、不拦 cells/hub、
-# MITM 仅 api.pinduoduo.com。v11 已证伪（7 个域名不是恢复根因）。未带过 v10
-# 的内容：开屏 splash reject、评价/取件脚本、其余新增接口——确认不恢复后再
-# 逐项加。回滚：v11 commit 1eb722e6；QingRex 原版见上游链接。
-#
-# v13（2026-11-14，小慧）：个人中心两处，抓包会话 2026-11-14-121621 实测。
-# philo/personal/hub 响应是扁平结构：删 show_all_order 的
-# desc_text_list/desc_text_list_v2（11.11 放心买·专属客服·极速退），
-# wallet.entrance_text 置空（买啥都减¥3-8，即将失效）。省钱月卡条：
-# 冷启动+个人中心整轮 50 条请求里没有任何接口下发它的数据（philo/hub、
-# profile/me、center/tab、hungary、lego 均已读，均无 monthly 字段；
-# 原有四条 philo 规则删的 monthly_card_entrance 等键在 8.31.0 响应里
-# 根本不存在），属本地/缓存渲染，网络层删不掉，故未加规则。
-#
-# v14（2026-11-14，小慧）：试验——个人中心头像/昵称头图。/user/profile/me
-# 回 {}，看 App 是否整块跳过头图（群友截图的干净版式）。若出现登录提示、
-# 占位头像或其它异常，删本条即回滚（v13）。本条只匹配 short_profile=1。
-#
-# v15（2026-11-14，小慧）：撤回 v14 试验——手机实测 v14 已生效（Map Local
-# 20 条），但头图仍在：头像/昵称是登录态本地渲染，不依赖 profile/me
-# 响应。群友的无头图版式是服务器下发的另一种页面版式，规则够不着。
-# 本版 = v13 内容 + 版本号，profile/me 规则已删。
-#
-# v16（2026-11-14，小慧）：仅统一文件头格式（分组改为去广告，作者标注魔改来源，补 #!date），规则内容与 v15 一字未变。
 [Rule]
 AND,((URL-REGEX,"^http:\/\/((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\/d(\d)?",extended-matching),(USER-AGENT,"*com.xunmeng.pinduoduo*")),REJECT
 AND,((URL-REGEX,"^http:\/\/\[[0-9a-fA-F:]+\]\/d(\d)?\?",extended-matching),(USER-AGENT,"*com.xunmeng.pinduoduo*")),REJECT

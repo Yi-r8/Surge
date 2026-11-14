@@ -6,32 +6,6 @@
 #!version=2026-11-14-v7
 #!openUrl=https://www.coolapk.com/
 
-# ============ 版本说明 ============
-# v7（2026-11-14）：仅统一文件头格式（补 #!date），规则内容未变。
-# v6（2026-11-10）紧急修正：v5 把 tnc3-alisc1.zijieapi.com 写成了
-#   DOMAIN-SUFFIX,zijieapi.com（整域），连带 zijieapi.net 一并拦掉，
-#   结果抖音的主接口（get_domains、ma5 QUIC API、polaris）全被拦，
-#   抖音打不开/刷不出内容，开屏“消失”只是连不上服务器的副作用。
-#   改为只拦精确主机 DOMAIN,tnc3-alisc1.zijieapi.com（+ QUIC），
-#   删掉 zijieapi.net；抖音穿山甲开屏仍由穿山甲域名规则拦截。
-# v5（2026-11-09）本次修正：
-#   1. 【新增域名】补上 api-access.pangolin-sdk-toutiao1.com
-#      抓包 100 条请求发现，该域名被请求 9 次，是穿山甲的备用域。
-#      原规则只写了 pangolin-sdk-toutiao.com（无 1），后缀匹配不到 -toutiao1.com。
-#   2. 【新增域名】补上 tnc3-alisc1.zijieapi.com（字节域名调度服务）
-#      开屏时 SDK 会用它获取可用的广告域名列表，绕过前面的域名拦截。
-#   3. 【新增域名】补上 sdk-config.tanx.com（阿里 TanX 广告）
-#   4. 【改为 REJECT-DROP】穿山甲 / 优量汇 的核心域名
-#      抓包显示这些请求即便被 REJECT，SDK 仍在疯狂重试（单次开屏 100 条请求中
-#      有 60+ 条是广告 SDK 的重试）。REJECT-DROP 静默丢包，不返回 RST，
-#      可显著减少重试风暴，是开屏卡顿的主因之一。
-#      注意：代价是客户端要等超时，但广告 SDK 本身就会超时，体感无差异。
-#
-# v4（2026-11-09）：
-#   1. 修复 [URL Rewrite] 语法错误（原写法 `- reject-dict` 是 Loon 语法，
-#      Surge 不认，导致整个 [URL Rewrite] 段被跳过）
-#   2. 新增开屏广告拦截：main/init 的 extraDataArr 里 17 个 SplashAd.* / Ad.SPLASH* 键
-#
 # [Rule] 是全局生效的：这几家 SDK 的广告在其他 App 里也会一并被拦。
 
 [Rule]

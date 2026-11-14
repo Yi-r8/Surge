@@ -6,29 +6,6 @@
 #!version=2026-11-14-v5
 #!openUrl=https://apps.apple.com/app/id461703208
 
-# v3（2026-11-08，小慧整理）：
-# - 脚本回来了，用的是原插件真正的脚本地址 https://rucu6.pages.dev/Scripts/amap.js。
-#   这个站加了按 User-Agent 判断的防盗链：Loon / Surge 的 UA 返回真文件，
-#   浏览器 UA 或无 UA 返回的是 Telegram 推广页（诱饵），所以之前用 curl 和
-#   浏览器 UA 抓到的都是 10KB 的 Telegram 页面。用 Loon UA 抓到的真文件已验证：
-#   23,517 字节，JS 语法通过，覆盖 23 个接口，正好对应下面 14 条 [Script] 规则。
-#   Surge 下载外部脚本时用的就是自己的 UA，所以能拿到真文件。
-# - v2 的原生规则全部保留（7 条 URL Rewrite、13 条 jq、13 条空返回、3 条拦截），
-#   再加回 14 条 [Script]，脚本和 jq 都是删字段的写法，重复处理也不会冲突。
-# - 仍需要 Surge 开启 MITM 并信任证书；高德会缓存广告配置，装完若没效果，
-#   卸载重装高德并重启手机再试。
-#
-# v4（2026-11-14，小慧）：对照 RuCu6 高德插件 2026-08-30 版（amap.lpx）补齐。
-# 新增：(1) [Rule] AND 规则拦 amdc/mobileDispatch 广告下发（仅 AMapiPhone UA、
-# 仅 HTTP）；(2) [Map Local] 打车页 af-comment contentNearbyCard 回 {}。
-# 改动：marketingOperationStructured 从整包 reject-dict 改为只删 3 个字段
-# （commonMaterial/tipsOperationLocation/resourcePlacement），其余业务数据保留，
-# 更贴近原插件，也避免整包清空影响搜索页。保留 v2/v3 的全部 jq 白名单规则；
-# scene/recommend 仍用 jq 白名单（不整包清空）、weather/v2 仍不清空（保天气显示）。
-# 14 条脚本规则与原插件一致，amap.js 仍为 23,517 字节未变。
-#
-# v5（2026-11-14，小慧）：仅统一文件头格式（分组改为去广告，作者标注魔改来源，补 #!date），规则内容未变。
-#
 [Rule]
 DOMAIN,amap-aos-info-nogw.amap.com,REJECT
 DOMAIN,free-aos-cdn-image.amap.com,REJECT
