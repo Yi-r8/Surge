@@ -8,7 +8,7 @@
 #!loon_version=3.2.4(787)
 #!homepage=https://hub.kelee.one
 #!date=2026-02-28 20:52:18
-#!version=2026-11-14-v13
+#!version=2026-11-14-v14
 
 #
 # v12（2026-11-14，小慧）：推翻重做——以 QingRex/LoonKissSurge 的拼多多去广告
@@ -26,6 +26,10 @@
 # profile/me、center/tab、hungary、lego 均已读，均无 monthly 字段；
 # 原有四条 philo 规则删的 monthly_card_entrance 等键在 8.31.0 响应里
 # 根本不存在），属本地/缓存渲染，网络层删不掉，故未加规则。
+#
+# v14（2026-11-14，小慧）：试验——个人中心头像/昵称头图。/user/profile/me
+# 回 {}，看 App 是否整块跳过头图（群友截图的干净版式）。若出现登录提示、
+# 占位头像或其它异常，删本条即回滚（v13）。本条只匹配 short_profile=1。
 [Rule]
 AND,((URL-REGEX,"^http:\/\/((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\/d(\d)?",extended-matching),(USER-AGENT,"*com.xunmeng.pinduoduo*")),REJECT
 AND,((URL-REGEX,"^http:\/\/\[[0-9a-fA-F:]+\]\/d(\d)?\?",extended-matching),(USER-AGENT,"*com.xunmeng.pinduoduo*")),REJECT
@@ -106,6 +110,8 @@ http-response-jq ^https:\/\/api\.pinduoduo\.com\/api\/aristotle\/order_list_v4\?
 ^https:\/\/api\.pinduoduo\.com\/api\/engels\/wait\/receive\/review\? data-type=text data="{}" status-code=200 header="Content-Type:application/json"
 
 ^https:\/\/api\.pinduoduo\.com\/api\/buffon\/nasus\/recommend\? data-type=text data="{}" status-code=200 header="Content-Type:application/json"
+
+^https:\/\/api\.pinduoduo\.com\/user\/profile\/me\?.*short_profile=1 data-type=text data="{}" status-code=200 header="Content-Type:application/json"
 
 [MITM]
 hostname = %APPEND% api.pinduoduo.com
