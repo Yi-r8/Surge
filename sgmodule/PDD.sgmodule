@@ -1,148 +1,101 @@
 #!name=拼多多去广告
-#!desc=拦截开屏、首页横幅、弹窗、信息流推广与上报域名；精简首页/评价页/取件页；拦截拼多多 HTTPDNS
-#!author=RuCu6、ZenmoFeiShi、怎么肥事、可莉（小慧转换）
-#!homepage=https://rucu6.pages.dev/Plugins/pinduoduo.lpx
-#!icon=https://rucu6.pages.dev/Icons/app/pinduoduo.png
-#!category=去广告
-#!system=iOS
-#!version=2026-11-14-v11
-#
-# v11（2026-11-14，小慧）：刷新恢复验证实验——并入 QingRex 版拦的 7 个 v10 放行
-# 的域名（meta、xg、apm、apm-a、cdl-1、cdl-p2、cd-1）各加 QUIC 配对。假设：恢复
-# 用的默认页面数据可能走其中某一下发（组件配置/模板）。若刷新不再恢复，再逐个
-# 拆是哪个域名；若还恢复，说明是群友版本差异，撤回本版。apm/apm-a 原注释禁用
-# 改为启用；m.pinduoduo.net 保持禁用（脚本宿主）。回滚：v10 403395a7
-# v10（2026-11-14，小慧）：并入 Aswoth/Keek 版 PinDuoDuo.sgmodule 里 v9 没有的部分
-# （同源 RuCu6 插件的另一份转换，均未在 8.31.0 上验证过）：8 条 _ reject（订单页
-# 两个 aristotle、phantom extra、厂家快捷入口、liveactivity 推送、待评价、店铺
-# 关注推荐、caterham v2 商品详情）、2 条守卫 jq（订单页营销横幅、订单按钮 growth
-# tip）、sdk.1rtb.net + QUIC、IP 121.5.84.85。机制一律用 v9 验证过的 _ reject /
-# 守卫 jq，不用 Keek 的 Map Local（v8 教训）；leporis 清红点未加（正常功能）。
-# 回滚：v9 b450b66c
-# v9（2026-11-13，小慧）：v8 回滚。v8 的 Map Local 200+{} 实测两条都错：(1) 商品
-# 流没了——cells/hub 回 {} 后 App 认作 0 个商品，不再走兜底；(2) 刷新还是恢复，
-# reject 语义不是根因。v9 恢复 v7 的 13 条 `_ reject`（商品流回来），其余与 v8
-# 相同（双域名 hub 脚本、QUIC 规则、tab 过滤都在）。刷新恢复的载体至今没抓到：
-# 至今没有一次真下拉刷新被全量抓包录到（几轮全是冷启动），下一步是带 /api/
-# 关键字（可命中 IP 直连 URL）+ UDP 可见的全量刷新抓包。回滚：v7 e3a36391
-# v5（2026-11-13，小慧）：纠正 v3 注释——拼小圈不是本地模板，它就是 hub 响应里的
-# timeline 模块（home_screen_skin.timeline.icon_image = pinxiaoquan.png，
-# module_order 含 timeline，timeline_visible=true，两轮抓包实测）。fork 脚本新增：
-# timeline_visible=false + module_order 剔除 timeline + 删 home_screen_skin.timeline；
-# 其余逻辑不变，多多买菜/百亿补贴（dy_module）原样保留。回滚：v4 commit 4b78f1cb
-# v4（2026-11-13，小慧）：v3 的 hub jq 规则已确认在手机上加载（Body Rewrite 4 条）
-# 但图标行仍在——改把 icon_set 删除放进脚本（本接口上实测有效的改写路径），
-# fork RuCu6 脚本的 hub 分支为仓库内 scripts/pinduoduo-hub.js（仅启用 icon_set 删除，
-# 其余逻辑原样），首页脚本规则改指该文件；hub jq 规则撤销，其余 3 条 jq 保留
-# v3（2026-11-13，小慧）：两轮抓包实测（拼多多 8.31.0）后补规则——
-# 开屏 splash 与 cells/hub 的 reject、首页脚本改写均已验证生效；新增 jq 删首页
-# hub 响应的 result.icon_set（图标行，16 项，实测结构）；拼小圈行两轮抓包均未见
-# 其数据接口（hub/lego/social 响应里均无相关字段，应为本地模板/缓存渲染），未加猜测规则
-# v2（2026-11-13，小慧转换）：转自 RuCu6 的 Loon 插件 pinduoduo.lpx（2026-09-28），
-# 并入原 ZenmoFeiShi 模块里 RuCu6 没有的部分：
-# - 新增：开屏 cappuccino/splash 等 13 条 URL Rewrite（_ reject）、3 条 jq 删字段
-#   （oak/philo/search）、2 条 HTTPDNS 拦截之其一（见下）、ta/th 上报域名 + QUIC 配对规则
-# - 脚本：RuCu6 的 pinduoduo.js（精简首页/评价页/取件页，Surge UA 可过该站防盗链），
-#   首页规则沿用旧版的宽模式（含 /hub/refresh）；保留 ZenmoFeiShi 脚本的弹窗与聚合两条
-#   （RuCu6 没有 nagato 聚合规则，hungary 脚本作为 reject 之外的后备）
-# - 保留：旧版 titan-mt 域名与 16 条上报 IP 段
-# - 省略：原插件的 IPv6 版 HTTPDNS 规则——本机 [General] ipv6=false 用不上，且正则里的
-#   "{1, 4}" 逗号在 Surge 规则里无法表达；上游注释掉的 apm-a/apm/m.pinduoduo.net 三条保持禁用
-# - MITM 增加 api.yangkeduo.com 与 m.pinduoduo.net
-# 旧版 v1：ZenmoFeiShi/Qx Pinduoduo.snippet（2026-11-04，拼多多 8.29.0），仅底栏/弹窗/聚合
-#
-[Rule]
-# 拦截 HTTPDNS（IPv4）：拼多多用明文 HTTP 直连 IP 解析域名，拦掉后走正常 DNS，规则才能生效
-AND,((URL-REGEX,^http://((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(http://[\d\.]+)?/d4?\?),(USER-AGENT,*com.xunmeng.pinduoduo*)),REJECT
-#DOMAIN,m.pinduoduo.net,REJECT
-DOMAIN,ta-a.pinduoduo.com,REJECT
-DOMAIN,ta.pinduoduo.com,REJECT
-DOMAIN,th-a.pinduoduo.com,REJECT
-DOMAIN,th-b.pinduoduo.com,REJECT
-DOMAIN,th.pinduoduo.com,REJECT
-DOMAIN,titan.pinduoduo.com,REJECT
-DOMAIN,titan-mt.pinduoduo.com,REJECT
-DOMAIN,sdk.1rtb.net,REJECT
-DOMAIN,meta.pinduoduo.com,REJECT
-DOMAIN,xg.pinduoduo.com,REJECT
-DOMAIN,apm.pinduoduo.com,REJECT
-DOMAIN,apm-a.pinduoduo.com,REJECT
-DOMAIN,cdl-1.pddpic.com,REJECT
-DOMAIN,cdl-p2.pddpic.com,REJECT
-DOMAIN,cd-1.pddpic.com,REJECT
-AND,((DOMAIN,ta-a.pinduoduo.com),(PROTOCOL,QUIC)),REJECT
-AND,((DOMAIN,ta.pinduoduo.com),(PROTOCOL,QUIC)),REJECT
-AND,((DOMAIN,th-a.pinduoduo.com),(PROTOCOL,QUIC)),REJECT
-AND,((DOMAIN,th-b.pinduoduo.com),(PROTOCOL,QUIC)),REJECT
-AND,((DOMAIN,th.pinduoduo.com),(PROTOCOL,QUIC)),REJECT
-AND,((DOMAIN,titan.pinduoduo.com),(PROTOCOL,QUIC)),REJECT
-AND,((DOMAIN,titan-mt.pinduoduo.com),(PROTOCOL,QUIC)),REJECT
-AND,((DOMAIN,sdk.1rtb.net),(PROTOCOL,QUIC)),REJECT
-AND,((DOMAIN,meta.pinduoduo.com),(PROTOCOL,QUIC)),REJECT
-AND,((DOMAIN,xg.pinduoduo.com),(PROTOCOL,QUIC)),REJECT
-AND,((DOMAIN,apm.pinduoduo.com),(PROTOCOL,QUIC)),REJECT
-AND,((DOMAIN,apm-a.pinduoduo.com),(PROTOCOL,QUIC)),REJECT
-AND,((DOMAIN,cdl-1.pddpic.com),(PROTOCOL,QUIC)),REJECT
-AND,((DOMAIN,cdl-p2.pddpic.com),(PROTOCOL,QUIC)),REJECT
-AND,((DOMAIN,cd-1.pddpic.com),(PROTOCOL,QUIC)),REJECT
-# 防脚本绕过：3 个 MITM 主机的 QUIC 也拦掉，迫使走 TCP，脚本才能改到响应
-AND,((DOMAIN,api.pinduoduo.com),(PROTOCOL,QUIC)),REJECT
-AND,((DOMAIN,api.yangkeduo.com),(PROTOCOL,QUIC)),REJECT
-AND,((DOMAIN,m.pinduoduo.net),(PROTOCOL,QUIC)),REJECT
-IP-CIDR,81.69.105.47/32,REJECT,no-resolve
-IP-CIDR,81.69.104.17/32,REJECT,no-resolve
-IP-CIDR,81.69.104.33/32,REJECT,no-resolve
-IP-CIDR,81.69.204.21/32,REJECT,no-resolve
-IP-CIDR,81.69.105.56/32,REJECT,no-resolve
-IP-CIDR,81.69.116.33/32,REJECT,no-resolve
-IP-CIDR,49.235.102.145/32,REJECT,no-resolve
-IP-CIDR,49.235.102.190/32,REJECT,no-resolve
-IP-CIDR,49.235.102.235/32,REJECT,no-resolve
-IP-CIDR,111.231.130.223/32,REJECT,no-resolve
-IP-CIDR,212.129.232.162/32,REJECT,no-resolve
-IP-CIDR,111.231.95.17/32,REJECT,no-resolve
-IP-CIDR,183.194.214.14/32,REJECT,no-resolve
-IP-CIDR,183.194.214.20/32,REJECT,no-resolve
-IP-CIDR,183.194.214.21/32,REJECT,no-resolve
-IP-CIDR,117.185.244.145/32,REJECT,no-resolve
-IP-CIDR,121.5.84.85/32,REJECT,no-resolve
+#!desc=移除开屏广告、底栏多多视频、会场入口、聊天页面精选推荐及推广，精简首页和个人中心。
+#!author=ZenmoFeiShi[https://github.com/ZenmoFeiShi], 可莉🅥[https://github.com/luestr/ProxyResource/blob/main/README.md]
+#!icon=https://raw.githubusercontent.com/luestr/IconResource/main/App_icon/120px/PinDuoDuo.png
+#!category=BetaModule
+#!openUrl=https://apps.apple.com/app/id1044283059
+#!tag=去广告
+#!loon_version=3.2.4(787)
+#!homepage=https://hub.kelee.one
+#!date=2026-02-28 20:52:18
+#!version=2026-11-14-v12
 
-[URL Rewrite]
-(?i)^https://api\.(?:pinduoduo|yangkeduo)\.com/api/cappuccino/splash\? _ reject
-(?i)^https://api\.pinduoduo\.com/api/alexa/(?:cells/hub|goods/back_up) _ reject
-(?i)^https://api\.pinduoduo\.com/api/aquarius/hungary/global/homepage\? _ reject
-(?i)^https://api\.pinduoduo\.com/api/brand-olay/goods_detail/bybt_guide _ reject
-(?i)^https://api\.pinduoduo\.com/api/buffon/nasus/recommend\? _ reject
-(?i)^https://api\.pinduoduo\.com/api/caterham/v3/query/ _ reject
-^https://api\.pinduoduo\.com/api/dunkirk/subaru/goods_list_v2\? _ reject
-(?i)^https://api\.pinduoduo\.com/api/engels/reviews/require/append _ reject
-(?i)^https://api\.pinduoduo\.com/api/express/post/landing_page/ad/recommend_goods_list/pickup_identity_code\? _ reject
-(?i)^https://api\.pinduoduo\.com/api/flow/hungary/window/global/v2\? _ reject
-(?i)^https://api\.pinduoduo\.com/api/zaire_biz/chat/resource/get_list_data _ reject
-(?i)^https://api\.pinduoduo\.com/api/xrec/goods_rec/pay_after_use_v2\? _ reject
-(?i)^https://api\.pinduoduo\.com/search_hotquery\? _ reject
-(?i)^https://api\.pinduoduo\.com/api/aristotle/unrated_order_for_unreceived_tab\? _ reject
-(?i)^https://api\.pinduoduo\.com/api/aristotle/query_order_list_tabs_element\? _ reject
-(?i)^https://api\.pinduoduo\.com/api/phantom/gbdbpdv/extra\? _ reject
-(?i)^https://api\.pinduoduo\.com/api/manufacturer/cross/shortcut/list\? _ reject
-(?i)^https://api\.pinduoduo\.com/api/dunkirk/liveactivity/push/create/url/report\? _ reject
-(?i)^https://api\.pinduoduo\.com/api/engels/wait/receive/review\? _ reject
-(?i)^https://api\.pinduoduo\.com/api/social/mall/follow/hot/recommend\? _ reject
-(?i)^https://api\.pinduoduo\.com/api/caterham/v2/query/goods_detail_with_tags\? _ reject
+#
+# v12（2026-11-14，小慧）：推翻重做——以 QingRex/LoonKissSurge 的拼多多去广告
+# beta 版为底（用户实测刷新不恢复），仅加两条 hub jq：去拼小圈 timeline、去
+# 顶部最快明天达/政府补贴两个推广 tab。其余一字未动：无脚本、不拦 cells/hub、
+# MITM 仅 api.pinduoduo.com。v11 已证伪（7 个域名不是恢复根因）。未带过 v10
+# 的内容：开屏 splash reject、评价/取件脚本、其余新增接口——确认不恢复后再
+# 逐项加。回滚：v11 commit 1eb722e6；QingRex 原版见上游链接。
+[Rule]
+AND,((URL-REGEX,"^http:\/\/((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\/d(\d)?",extended-matching),(USER-AGENT,"*com.xunmeng.pinduoduo*")),REJECT
+AND,((URL-REGEX,"^http:\/\/\[[0-9a-fA-F:]+\]\/d(\d)?\?",extended-matching),(USER-AGENT,"*com.xunmeng.pinduoduo*")),REJECT
+AND,((DOMAIN,api.pinduoduo.com,extended-matching),(PROTOCOL,QUIC)),REJECT
+DOMAIN,titan.pinduoduo.com,REJECT-NO-DROP,extended-matching,pre-matching
+DOMAIN,xg.pinduoduo.com,REJECT,extended-matching,pre-matching
+DOMAIN,cdl-1.pddpic.com,REJECT,extended-matching,pre-matching
+DOMAIN,titan.pinduoduo.com,REJECT,extended-matching,pre-matching
+DOMAIN,cdl-p2.pddpic.com,REJECT,extended-matching,pre-matching
+DOMAIN,cd-1.pddpic.com,REJECT,extended-matching,pre-matching
+DOMAIN,apm.pinduoduo.com,REJECT,extended-matching,pre-matching
+DOMAIN,th-b.pinduoduo.com,REJECT,extended-matching,pre-matching
+DOMAIN,ta.pinduoduo.com,REJECT,extended-matching,pre-matching
+DOMAIN,th.pinduoduo.com,REJECT,extended-matching,pre-matching
+DOMAIN,th-a.pinduoduo.com,REJECT,extended-matching,pre-matching
+DOMAIN,ta-a.pinduoduo.com,REJECT,extended-matching,pre-matching
+DOMAIN,meta.pinduoduo.com,REJECT,extended-matching,pre-matching
+DOMAIN,apm-a.pinduoduo.com,REJECT,extended-matching,pre-matching
 
 [Body Rewrite]
-http-response-jq (?i)^https://api\.pinduoduo\.com/api/oak/integration/render 'if type == "object" then del(.bottom_section_list, .ui.bottom_section, .ui.live_section.float_info) else . end'
-http-response-jq (?i)^https://api\.pinduoduo\.com/api/philo/personal/hub\? 'if type == "object" then del(.monthly_card_entrance, .personal_banner, .personal_center_style_v2_vo, .icon_set.icons, .icon_set.top_personal_icons, .title_bar_items) else . end'
-http-response-jq (?i)^https://api\.pinduoduo\.com/search 'if type == "object" then del(.expansion) else . end'
-http-response-jq (?i)^https://api\.pinduoduo\.com/order/ 'if type == "object" then del(.marketing_banner_vo, .shipping.banner_above_recommend) else . end'
-http-response-jq (?i)^https://api\.pinduoduo\.com/api/aristotle/order_list_v4\? 'if type == "object" then if (.orders | type) == "array" then .orders |= map(if (.order_buttons | type) == "array" then .order_buttons |= map(del(.order_growth_tip)) else . end) else . end else . end'
+http-response-jq ^https:\/\/api\.pinduoduo\.com\/api\/alexa\/homepage\/hub\? 'delpaths([["result","dy_module","irregular_banner_dy"]])'
+http-response-jq ^https:\/\/api\.pinduoduo\.com\/api\/alexa\/homepage\/hub\? 'delpaths([["result","icon_set"]])'
+http-response-jq ^https:\/\/api\.pinduoduo\.com\/api\/alexa\/homepage\/hub\? 'delpaths([["result","search_bar_hot_query"]])'
+http-response-jq ^https:\/\/api\.pinduoduo\.com\/api\/alexa\/homepage\/hub\? 'delpaths([["result","dy_module","irregular_banner_dy"]])'
+http-response-jq ^https:\/\/api\.pinduoduo\.com\/api\/alexa\/homepage\/hub\? '.result.bottom_tabs? |= map(select(.link | IN("index.html", "chat_list.html", "personal.html"))) | .result.buffer_bottom_tabs? |= map(select(.link | IN("index.html", "chat_list.html", "personal.html"))) | .result.all_top_opts |= map(del(.selected_image, .image, .height, .width))'
+http-response-jq ^https:\/\/api\.pinduoduo\.com\/api\/alexa\/homepage\/hub\? 'if (type == "object" and (.result | type) == "object") then .result.timeline_visible = false | del(.result.home_screen_skin.timeline) | if (.result.module_order | type) == "array" then .result.module_order |= map(select(if type == "object" then .module_name != "timeline" else . != "timeline" end)) else . end else . end'
+http-response-jq ^https:\/\/api\.pinduoduo\.com\/api\/alexa\/homepage\/hub\? 'if (type == "object" and (.result | type) == "object") then if (.result.all_top_opts | type) == "array" then .result.all_top_opts |= map(select((.opt_name // "") | test("最快明天达|政府补贴") | not)) else . end else . end'
+http-response-jq ^https:\/\/api\.pinduoduo\.com\/search\? 'delpaths([["expansion"]])'
+http-response-jq ^https:\/\/api\.pinduoduo\.com\/api\/philo\/personal\/hub\? 'delpaths([["monthly_card_entrance"]])'
+http-response-jq ^https:\/\/api\.pinduoduo\.com\/api\/philo\/personal\/hub\? 'delpaths([["personal_center_style_v2_vo"]])'
+http-response-jq ^https:\/\/api\.pinduoduo\.com\/api\/philo\/personal\/hub\? 'delpaths([["icon_set","icons"]])'
+http-response-jq ^https:\/\/api\.pinduoduo\.com\/api\/philo\/personal\/hub\? 'delpaths([["icon_set","top_personal_icons"]])'
+http-response-jq ^https:\/\/api\.pinduoduo\.com\/api\/oak\/integration\/render\? 'delpaths([["bottom_section_list"]])'
+http-response-jq ^https:\/\/api\.pinduoduo\.com\/api\/oak\/integration\/render\? 'delpaths([["ui","bottom_section"]])'
+http-response-jq ^https:\/\/api\.pinduoduo\.com\/api\/oak\/integration\/render\? 'delpaths([["ui","live_section","float_info"]])'
+http-response-jq ^https:\/\/api\.pinduoduo\.com\/api\/caterham\/v3\/query\/order_detail_group\? 'delpaths([["data","goods_list"]])'
+http-response-jq ^https:\/\/api\.pinduoduo\.com\/order\/ 'delpaths([["marketing_banner_vo"]])'
+http-response-jq ^https:\/\/api\.pinduoduo\.com\/order\/ 'delpaths([["shipping","banner_above_recommend"]])'
+http-response-jq ^https:\/\/api\.pinduoduo\.com\/api\/aristotle\/order_list_v4\? '.orders |= map(.order_buttons |= map(del(.order_growth_tip)))'
 
-[Script]
-拼多多精简首页 = type=http-response,pattern=^https://api\.(?:pinduoduo|yangkeduo)\.com/api/alexa/homepage/hub(/refresh)?\?,requires-body=true,script-path=https://raw.githubusercontent.com/Yi-r8/Surge/main/scripts/pinduoduo-hub.js
-拼多多精简评价页 = type=http-response,pattern=^https://m\.pinduoduo\.net/comment_result\.html\?,requires-body=true,script-path=https://rucu6.pages.dev/Scripts/pinduoduo.js
-拼多多精简取件页 = type=http-response,pattern=^https://m\.pinduoduo\.net/mdkd/package\?,requires-body=true,script-path=https://rucu6.pages.dev/Scripts/pinduoduo.js
-拼多多净化弹窗 = type=http-response,pattern=^https://api\.pinduoduo\.com/api/(aquarius|flow)/hungary/(window/)?global/,requires-body=true,script-path=https://raw.githubusercontent.com/ZenmoFeiShi/Qx/refs/heads/main/Pinduoduo.js
-拼多多净化聚合 = type=http-response,pattern=^https://api\.pinduoduo\.com/api/growth/nagato/app/index/gather,requires-body=true,script-path=https://raw.githubusercontent.com/ZenmoFeiShi/Qx/refs/heads/main/Pinduoduo.js
+[Map Local]
+^https:\/\/api\.pinduoduo\.com\/api\/aristotle\/unrated_order_for_unreceived_tab\? data-type=text data="{}" status-code=200 header="Content-Type:application/json"
+
+^https:\/\/api\.pinduoduo\.com\/api\/aristotle\/query_order_list_tabs_element\? data-type=text data="{}" status-code=200 header="Content-Type:application/json"
+
+^https:\/\/api\.pinduoduo\.com\/api\/aquarius\/hungary\/global\/homepage\? data-type=text data="{}" status-code=200 header="Content-Type:application/json"
+
+^https:\/\/api\.pinduoduo\.com\/api\/caterham\/v3\/query\/order_express_group\? data-type=text data="{}" status-code=200 header="Content-Type:application/json"
+
+^https:\/\/api\.pinduoduo\.com\/search_hotquery\? data-type=text data="{}" status-code=200 header="Content-Type:application/json"
+
+^https:\/\/api\.pinduoduo\.com\/api\/zaire_biz\/chat\/resource\/get_list_data\? data-type=text data="{}" status-code=200 header="Content-Type:application/json"
+
+^https:\/\/api\.pinduoduo\.com\/api\/caterham\/v3\/query\/new_chat_group\? data-type=text data="{}" status-code=200 header="Content-Type:application/json"
+
+^https:\/\/api\.pinduoduo\.com\/api\/alexa\/goods\/back_up\? data-type=text data="{}" status-code=200 header="Content-Type:application/json"
+
+^https:\/\/api\.pinduoduo\.com\/api\/caterham\/v3\/query\/personal\? data-type=text data="{}" status-code=200 header="Content-Type:application/json"
+
+^https:\/\/api\.pinduoduo\.com\/api\/brand-olay\/goods_detail\/bybt_guide\? data-type=text data="{}" status-code=200 header="Content-Type:application/json"
+
+^https:\/\/api\.pinduoduo\.com\/api\/engels\/reviews\/require\/append\? data-type=text data="{}" status-code=200 header="Content-Type:application/json"
+
+^https:\/\/api\.pinduoduo\.com\/api\/caterham\/v3\/query\/my_order_group\? data-type=text data="{}" status-code=200 header="Content-Type:application/json"
+
+^https:\/\/api\.pinduoduo\.com\/api\/caterham\/v3\/query\/likes\? data-type=text data="{}" status-code=200 header="Content-Type:application/json"
+
+^https:\/\/api\.pinduoduo\.com\/api\/phantom\/gbdbpdv\/extra\? data-type=text data="{}" status-code=200 header="Content-Type:application/json"
+
+^https:\/\/api\.pinduoduo\.com\/api\/manufacturer\/cross\/shortcut\/list\? data-type=text data="{}" status-code=200 header="Content-Type:application/json"
+
+^https:\/\/api\.pinduoduo\.com\/api\/dunkirk\/liveactivity\/push\/create\/url\/report\? data-type=text data="{}" status-code=200 header="Content-Type:application/json"
+
+^https:\/\/api\.pinduoduo\.com\/api\/growth\/nagato\/app\/index\/gather\? data-type=text data="{}" status-code=200 header="Content-Type:application/json"
+
+^https:\/\/api\.pinduoduo\.com\/api\/engels\/wait\/receive\/review\? data-type=text data="{}" status-code=200 header="Content-Type:application/json"
+
+^https:\/\/api\.pinduoduo\.com\/api\/buffon\/nasus\/recommend\? data-type=text data="{}" status-code=200 header="Content-Type:application/json"
 
 [MITM]
-hostname = %APPEND% api.pinduoduo.com, api.yangkeduo.com, m.pinduoduo.net
+hostname = %APPEND% api.pinduoduo.com
+
