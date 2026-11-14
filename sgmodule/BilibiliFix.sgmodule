@@ -3,9 +3,9 @@
 #!author=小慧 (转换自 TomCatXue，融合 XiaoMan)
 #!homepage=https://github.com/TomCatXue/MyCookieCenter
 #!category=去广告
-#!version=2026-11-15-v4
+#!version=2026-11-15-v5
 #!openUrl=https://apps.apple.com/app/id736536022
-#!arguments=sponsorBlock:true,displayUpList:"auto",purifyComment:true,optimizeRequest:true,VIP:false,Authorization:"",UserAgent:"",logLevel:"error"
+#!arguments=sponsorBlock:true,displayUpList:"auto",purifyComment:true,VIP:false,Authorization:"",UserAgent:"",logLevel:"error"
 
 [Rule]
 # 空降助手服务器：必须走代理，直连实测 2 秒且不稳定（Loon 原版注释：必须走代理以防连接超时）
@@ -81,8 +81,6 @@ bilibili.qrcode.capture = type=http-request,pattern=(?i)^https?:\/\/(?:app|api)\
 bilibili.qrcode.fix = type=http-request,pattern=(?i)^https:\/\/passport\.bilibili\.com\/x\/passport-login\/web\/qrcode\/(check|confirm|scene),requires-body=true,timeout=10,script-path=https://raw.githubusercontent.com/TomCatXue/MyCookieCenter/refs/heads/main/scripts/tools/bilibili/bilibili_qrcode.js?v=6beeac14
 # 空降助手：跳过视频内插播广告（开关：sponsorBlock）
 bilibili.airborne = type=http-request,pattern=(?i)^https:\/\/(?:grpc\.biliapi\.net|app\.bilibili\.com)\/bilibili\.community\.service\.dm\.v1\.DM\/DmSegMobile$,requires-body=true,binary-body-mode=true,timeout=10,argument="{"logLevel":"{logLevel}"}",enabled={sponsorBlock},script-path=https://raw.githubusercontent.com/kokoryh/Sparkle/master/dist/bilibili.protobuf.request.js
-# 评论区请求优化（开关：optimizeRequest）
-bilibili.protobuf.request = type=http-request,pattern=(?i)^https:\/\/(?:grpc\.biliapi\.net|app\.bilibili\.com)\/bilibili\.(?:app\.viewunite\.v1\.View\/View|main\.community\.reply\.v1\.Reply\/MainList)$,requires-body=true,binary-body-mode=true,timeout=10,argument="{"purifyComment":{purifyComment},"logLevel":"{logLevel}"}",enabled={optimizeRequest},script-path=https://raw.githubusercontent.com/kokoryh/Sparkle/master/dist/bilibili.protobuf.request.js
 # 评论区/动态/画质净化（开关：purifyComment、sponsorBlock）
 bilibili.protobuf.response = type=http-response,pattern=(?i)^https:\/\/(?:grpc\.biliapi\.net|app\.bilibili\.com)\/bilibili\.(?:app\.(?:show\.v1\.Popular\/Index|dynamic\.v2\.Dynamic\/DynAll|view(?:unite)?\.v1\.View\/(?:View|ViewProgress|RelatesFeed|AIRelateAsync)|playurl\.v1\.PlayURL\/PlayView|playerunite\.v1\.Player\/PlayViewUnite)|polymer\.app\.search\.v1\.Search\/SearchAll|community\.service\.dm\.v1\.DM\/DmView|main\.community\.reply\.v1\.Reply\/MainList|pgc\.gateway\.player\.v2\.PlayURL\/PlayView)$,requires-body=true,binary-body-mode=true,argument="{"displayUpList":"{displayUpList}","purifyComment":{purifyComment},"sponsorBlock":{sponsorBlock},"logLevel":"{logLevel}"}",script-path=https://raw.githubusercontent.com/kokoryh/Sparkle/master/dist/bilibili.protobuf.response.js
 # 移除直播间广告
