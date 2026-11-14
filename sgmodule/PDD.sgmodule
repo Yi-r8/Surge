@@ -2,11 +2,8 @@
 #!desc=移除开屏广告、底栏多多视频、会场入口、聊天页面精选推荐及推广，精简首页和个人中心。
 #!author=小慧 (魔改自 QingRex 的 LoonKissSurge 拼多多 Beta 模块，原作者 ZenmoFeiShi、可莉)
 #!homepage=https://hub.kelee.one
-#!icon=https://raw.githubusercontent.com/luestr/IconResource/main/App_icon/120px/PinDuoDuo.png
 #!category=去广告
-#!system=ios
 #!version=2026-11-14-v16
-#!date=2026-11-14
 #!openUrl=https://apps.apple.com/app/id1044283059
 
 #
