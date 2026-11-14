@@ -8,7 +8,7 @@
 #!loon_version=3.2.4(787)
 #!homepage=https://hub.kelee.one
 #!date=2026-02-28 20:52:18
-#!version=2026-11-14-v12
+#!version=2026-11-14-v13
 
 #
 # v12（2026-11-14，小慧）：推翻重做——以 QingRex/LoonKissSurge 的拼多多去广告
@@ -17,6 +17,15 @@
 # MITM 仅 api.pinduoduo.com。v11 已证伪（7 个域名不是恢复根因）。未带过 v10
 # 的内容：开屏 splash reject、评价/取件脚本、其余新增接口——确认不恢复后再
 # 逐项加。回滚：v11 commit 1eb722e6；QingRex 原版见上游链接。
+#
+# v13（2026-11-14，小慧）：个人中心两处，抓包会话 2026-11-14-121621 实测。
+# philo/personal/hub 响应是扁平结构：删 show_all_order 的
+# desc_text_list/desc_text_list_v2（11.11 放心买·专属客服·极速退），
+# wallet.entrance_text 置空（买啥都减¥3-8，即将失效）。省钱月卡条：
+# 冷启动+个人中心整轮 50 条请求里没有任何接口下发它的数据（philo/hub、
+# profile/me、center/tab、hungary、lego 均已读，均无 monthly 字段；
+# 原有四条 philo 规则删的 monthly_card_entrance 等键在 8.31.0 响应里
+# 根本不存在），属本地/缓存渲染，网络层删不掉，故未加规则。
 [Rule]
 AND,((URL-REGEX,"^http:\/\/((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\/d(\d)?",extended-matching),(USER-AGENT,"*com.xunmeng.pinduoduo*")),REJECT
 AND,((URL-REGEX,"^http:\/\/\[[0-9a-fA-F:]+\]\/d(\d)?\?",extended-matching),(USER-AGENT,"*com.xunmeng.pinduoduo*")),REJECT
@@ -49,6 +58,8 @@ http-response-jq ^https:\/\/api\.pinduoduo\.com\/api\/philo\/personal\/hub\? 'de
 http-response-jq ^https:\/\/api\.pinduoduo\.com\/api\/philo\/personal\/hub\? 'delpaths([["personal_center_style_v2_vo"]])'
 http-response-jq ^https:\/\/api\.pinduoduo\.com\/api\/philo\/personal\/hub\? 'delpaths([["icon_set","icons"]])'
 http-response-jq ^https:\/\/api\.pinduoduo\.com\/api\/philo\/personal\/hub\? 'delpaths([["icon_set","top_personal_icons"]])'
+http-response-jq ^https:\/\/api\.pinduoduo\.com\/api\/philo\/personal\/hub\? 'if type == "object" then del(.icon_set.other_icon_set.show_all_order.desc_text_list, .icon_set.other_icon_set.show_all_order.desc_text_list_v2) else . end'
+http-response-jq ^https:\/\/api\.pinduoduo\.com\/api\/philo\/personal\/hub\? 'if (type == "object" and (.wallet | type) == "object") then .wallet.entrance_text = "" else . end'
 http-response-jq ^https:\/\/api\.pinduoduo\.com\/api\/oak\/integration\/render\? 'delpaths([["bottom_section_list"]])'
 http-response-jq ^https:\/\/api\.pinduoduo\.com\/api\/oak\/integration\/render\? 'delpaths([["ui","bottom_section"]])'
 http-response-jq ^https:\/\/api\.pinduoduo\.com\/api\/oak\/integration\/render\? 'delpaths([["ui","live_section","float_info"]])'
