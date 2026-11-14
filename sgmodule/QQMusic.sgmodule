@@ -3,9 +3,7 @@
 #!author=小慧 (抓包自 QQ音乐 2026-11-11 会话 2026-11-11-010745、011612)
 #!homepage=https://github.com/Yi-r8/Surge/blob/main/sgmodule/QQMusic.sgmodule
 #!category=去广告
-#!system=ios
 #!version=2026-11-14-v3
-#!date=2026-11-14
 #!openUrl=https://y.qq.com/
 
 # ============ 抓包依据 ============
