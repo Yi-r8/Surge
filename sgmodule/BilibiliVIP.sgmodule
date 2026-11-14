@@ -1,0 +1,17 @@
+#!name=哔哩哔哩会员
+#!desc=大会员凭证注入（需填写 Authorization）与我的页面百年大会员显示，均由会员开关控制。
+#!author=小慧 (转换自 TomCatXue，融合 XiaoMan)
+#!homepage=https://github.com/TomCatXue/MyCookieCenter
+#!category=工具
+#!version=2026-11-15-v1
+#!openUrl=https://apps.apple.com/app/id736536022
+#!arguments=VIP:false,Authorization:"",UserAgent:""
+
+[Script]
+# 会员凭证注入：播放请求注入 Authorization（开关：VIP）
+bilibili.vip = type=http-request,pattern=(?i)^https?:\/\/(?:grpc\.biliapi\.net|app\.bilibili\.com|app\.biliapi\.net)\/(?:bilibili\.app\.(?:playerunite\.v1\.Player\/PlayViewUnite|playurl\.v1\.PlayURL\/PlayView)|bilibili\.pgc\.gateway\.player\.v2\.PlayURL\/PlayView),requires-body=true,binary-body-mode=true,timeout=60,argument="{"Authorization":"{Authorization}","UserAgent":"{UserAgent}"}",enabled={VIP},script-path=https://raw.githubusercontent.com/Yi-r8/Surge/main/scripts/bilibili_vip.js
+# 会员显示注入：我的/我的信息页面显示百年大会员（开关：VIP）
+bilibili.vip_display = type=http-response,pattern=(?i)^https:\/\/app\.bilibili\.com\/x\/v2\/account\/(?:mine(?:\/ipad)?|myinfo)\?,requires-body=true,enabled={VIP},script-path=https://raw.githubusercontent.com/Yi-r8/Surge/main/scripts/bilibili_vip_display.js
+
+[MITM]
+hostname = %APPEND% grpc.biliapi.net, app.bilibili.com, app.biliapi.net
