@@ -3,13 +3,13 @@
 #!author=小慧 (转换自 TomCatXue)
 #!homepage=https://github.com/TomCatXue/MyCookieCenter
 #!category=去广告
-#!version=2026-11-15-v1
+#!version=2026-11-15-v2
 #!openUrl=https://apps.apple.com/app/id736536022
 #!arguments=sponsorBlock:true,displayUpList:"auto",purifyComment:true,optimizeRequest:true,VIP:false,Authorization:"",UserAgent:"",logLevel:"error"
 
 [Rule]
-# 空降助手服务器
-DOMAIN,bsbsb.top,DIRECT
+# 空降助手服务器：必须走代理，直连实测 2 秒且不稳定（Loon 原版注释：必须走代理以防连接超时）
+DOMAIN,bsbsb.top,HK
 # 阻止B站备用域名访问
 DOMAIN,api.biliapi.com,REJECT
 DOMAIN,app.biliapi.com,REJECT
