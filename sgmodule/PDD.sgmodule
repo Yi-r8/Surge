@@ -8,7 +8,7 @@
 #!loon_version=3.2.4(787)
 #!homepage=https://hub.kelee.one
 #!date=2026-02-28 20:52:18
-#!version=2026-11-14-v14
+#!version=2026-11-14-v15
 
 #
 # v12（2026-11-14，小慧）：推翻重做——以 QingRex/LoonKissSurge 的拼多多去广告
@@ -30,6 +30,11 @@
 # v14（2026-11-14，小慧）：试验——个人中心头像/昵称头图。/user/profile/me
 # 回 {}，看 App 是否整块跳过头图（群友截图的干净版式）。若出现登录提示、
 # 占位头像或其它异常，删本条即回滚（v13）。本条只匹配 short_profile=1。
+#
+# v15（2026-11-14，小慧）：撤回 v14 试验——手机实测 v14 已生效（Map Local
+# 20 条），但头图仍在：头像/昵称是登录态本地渲染，不依赖 profile/me
+# 响应。群友的无头图版式是服务器下发的另一种页面版式，规则够不着。
+# 本版 = v13 内容 + 版本号，profile/me 规则已删。
 [Rule]
 AND,((URL-REGEX,"^http:\/\/((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\/d(\d)?",extended-matching),(USER-AGENT,"*com.xunmeng.pinduoduo*")),REJECT
 AND,((URL-REGEX,"^http:\/\/\[[0-9a-fA-F:]+\]\/d(\d)?\?",extended-matching),(USER-AGENT,"*com.xunmeng.pinduoduo*")),REJECT
@@ -110,8 +115,6 @@ http-response-jq ^https:\/\/api\.pinduoduo\.com\/api\/aristotle\/order_list_v4\?
 ^https:\/\/api\.pinduoduo\.com\/api\/engels\/wait\/receive\/review\? data-type=text data="{}" status-code=200 header="Content-Type:application/json"
 
 ^https:\/\/api\.pinduoduo\.com\/api\/buffon\/nasus\/recommend\? data-type=text data="{}" status-code=200 header="Content-Type:application/json"
-
-^https:\/\/api\.pinduoduo\.com\/user\/profile\/me\?.*short_profile=1 data-type=text data="{}" status-code=200 header="Content-Type:application/json"
 
 [MITM]
 hostname = %APPEND% api.pinduoduo.com
