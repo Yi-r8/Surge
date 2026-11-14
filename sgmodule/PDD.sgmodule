@@ -5,8 +5,13 @@
 #!icon=https://rucu6.pages.dev/Icons/app/pinduoduo.png
 #!category=去广告
 #!system=iOS
-#!version=2026-11-14-v10
+#!version=2026-11-14-v11
 #
+# v11（2026-11-14，小慧）：刷新恢复验证实验——并入 QingRex 版拦的 7 个 v10 放行
+# 的域名（meta、xg、apm、apm-a、cdl-1、cdl-p2、cd-1）各加 QUIC 配对。假设：恢复
+# 用的默认页面数据可能走其中某一下发（组件配置/模板）。若刷新不再恢复，再逐个
+# 拆是哪个域名；若还恢复，说明是群友版本差异，撤回本版。apm/apm-a 原注释禁用
+# 改为启用；m.pinduoduo.net 保持禁用（脚本宿主）。回滚：v10 403395a7
 # v10（2026-11-14，小慧）：并入 Aswoth/Keek 版 PinDuoDuo.sgmodule 里 v9 没有的部分
 # （同源 RuCu6 插件的另一份转换，均未在 8.31.0 上验证过）：8 条 _ reject（订单页
 # 两个 aristotle、phantom extra、厂家快捷入口、liveactivity 推送、待评价、店铺
@@ -49,8 +54,6 @@
 [Rule]
 # 拦截 HTTPDNS（IPv4）：拼多多用明文 HTTP 直连 IP 解析域名，拦掉后走正常 DNS，规则才能生效
 AND,((URL-REGEX,^http://((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(http://[\d\.]+)?/d4?\?),(USER-AGENT,*com.xunmeng.pinduoduo*)),REJECT
-#DOMAIN,apm-a.pinduoduo.com,REJECT
-#DOMAIN,apm.pinduoduo.com,REJECT
 #DOMAIN,m.pinduoduo.net,REJECT
 DOMAIN,ta-a.pinduoduo.com,REJECT
 DOMAIN,ta.pinduoduo.com,REJECT
@@ -60,6 +63,13 @@ DOMAIN,th.pinduoduo.com,REJECT
 DOMAIN,titan.pinduoduo.com,REJECT
 DOMAIN,titan-mt.pinduoduo.com,REJECT
 DOMAIN,sdk.1rtb.net,REJECT
+DOMAIN,meta.pinduoduo.com,REJECT
+DOMAIN,xg.pinduoduo.com,REJECT
+DOMAIN,apm.pinduoduo.com,REJECT
+DOMAIN,apm-a.pinduoduo.com,REJECT
+DOMAIN,cdl-1.pddpic.com,REJECT
+DOMAIN,cdl-p2.pddpic.com,REJECT
+DOMAIN,cd-1.pddpic.com,REJECT
 AND,((DOMAIN,ta-a.pinduoduo.com),(PROTOCOL,QUIC)),REJECT
 AND,((DOMAIN,ta.pinduoduo.com),(PROTOCOL,QUIC)),REJECT
 AND,((DOMAIN,th-a.pinduoduo.com),(PROTOCOL,QUIC)),REJECT
@@ -68,6 +78,13 @@ AND,((DOMAIN,th.pinduoduo.com),(PROTOCOL,QUIC)),REJECT
 AND,((DOMAIN,titan.pinduoduo.com),(PROTOCOL,QUIC)),REJECT
 AND,((DOMAIN,titan-mt.pinduoduo.com),(PROTOCOL,QUIC)),REJECT
 AND,((DOMAIN,sdk.1rtb.net),(PROTOCOL,QUIC)),REJECT
+AND,((DOMAIN,meta.pinduoduo.com),(PROTOCOL,QUIC)),REJECT
+AND,((DOMAIN,xg.pinduoduo.com),(PROTOCOL,QUIC)),REJECT
+AND,((DOMAIN,apm.pinduoduo.com),(PROTOCOL,QUIC)),REJECT
+AND,((DOMAIN,apm-a.pinduoduo.com),(PROTOCOL,QUIC)),REJECT
+AND,((DOMAIN,cdl-1.pddpic.com),(PROTOCOL,QUIC)),REJECT
+AND,((DOMAIN,cdl-p2.pddpic.com),(PROTOCOL,QUIC)),REJECT
+AND,((DOMAIN,cd-1.pddpic.com),(PROTOCOL,QUIC)),REJECT
 # 防脚本绕过：3 个 MITM 主机的 QUIC 也拦掉，迫使走 TCP，脚本才能改到响应
 AND,((DOMAIN,api.pinduoduo.com),(PROTOCOL,QUIC)),REJECT
 AND,((DOMAIN,api.yangkeduo.com),(PROTOCOL,QUIC)),REJECT
