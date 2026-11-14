@@ -4,10 +4,12 @@
 #!homepage=https://github.com/ZenmoFeiShi/Qx/blob/main/KuAn.snippet
 #!category=去广告
 #!system=ios
-#!version=2026-11-10-v6
+#!version=2026-11-14-v7
+#!date=2026-11-14
 #!openUrl=https://www.coolapk.com/
 
 # ============ 版本说明 ============
+# v7（2026-11-14）：仅统一文件头格式（补 #!date），规则内容未变。
 # v6（2026-11-10）紧急修正：v5 把 tnc3-alisc1.zijieapi.com 写成了
 #   DOMAIN-SUFFIX,zijieapi.com（整域），连带 zijieapi.net 一并拦掉，
 #   结果抖音的主接口（get_domains、ma5 QUIC API、polaris）全被拦，

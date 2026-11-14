@@ -4,10 +4,12 @@
 #!homepage=https://github.com/Yi-r8/Surge/blob/main/sgmodule/QQMusic.sgmodule
 #!category=去广告
 #!system=ios
-#!version=2026-11-11-v2
+#!version=2026-11-14-v3
+#!date=2026-11-14
 #!openUrl=https://y.qq.com/
 
 # ============ 抓包依据 ============
+# v3（2026-11-14）：仅统一文件头格式（补 #!date），规则内容未变。
 # 会话 2026-11-11-010745（2026-11-11 01:08 CST，92 条请求）：
 #   tmead.y.qq.com 15 条：POST /maproxy/getPbCompressAd 4 次（拿广告，
 #     响应 206 字节 gzip 压缩 protobuf）、/maproxy/getInfo 3 次、

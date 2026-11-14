@@ -1,14 +1,13 @@
 #!name=拼多多去广告
 #!desc=移除开屏广告、底栏多多视频、会场入口、聊天页面精选推荐及推广，精简首页和个人中心。
-#!author=ZenmoFeiShi[https://github.com/ZenmoFeiShi], 可莉🅥[https://github.com/luestr/ProxyResource/blob/main/README.md]
-#!icon=https://raw.githubusercontent.com/luestr/IconResource/main/App_icon/120px/PinDuoDuo.png
-#!category=BetaModule
-#!openUrl=https://apps.apple.com/app/id1044283059
-#!tag=去广告
-#!loon_version=3.2.4(787)
+#!author=小慧 (魔改自 QingRex 的 LoonKissSurge 拼多多 Beta 模块，原作者 ZenmoFeiShi、可莉)
 #!homepage=https://hub.kelee.one
-#!date=2026-02-28 20:52:18
-#!version=2026-11-14-v15
+#!icon=https://raw.githubusercontent.com/luestr/IconResource/main/App_icon/120px/PinDuoDuo.png
+#!category=去广告
+#!system=ios
+#!version=2026-11-14-v16
+#!date=2026-11-14
+#!openUrl=https://apps.apple.com/app/id1044283059
 
 #
 # v12（2026-11-14，小慧）：推翻重做——以 QingRex/LoonKissSurge 的拼多多去广告
@@ -35,6 +34,8 @@
 # 20 条），但头图仍在：头像/昵称是登录态本地渲染，不依赖 profile/me
 # 响应。群友的无头图版式是服务器下发的另一种页面版式，规则够不着。
 # 本版 = v13 内容 + 版本号，profile/me 规则已删。
+#
+# v16（2026-11-14，小慧）：仅统一文件头格式（分组改为去广告，作者标注魔改来源，补 #!date），规则内容与 v15 一字未变。
 [Rule]
 AND,((URL-REGEX,"^http:\/\/((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\/d(\d)?",extended-matching),(USER-AGENT,"*com.xunmeng.pinduoduo*")),REJECT
 AND,((URL-REGEX,"^http:\/\/\[[0-9a-fA-F:]+\]\/d(\d)?\?",extended-matching),(USER-AGENT,"*com.xunmeng.pinduoduo*")),REJECT

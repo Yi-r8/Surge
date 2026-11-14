@@ -1,12 +1,13 @@
 #!name=高德地图去广告
 #!desc=过滤高德地图开屏广告、各页面推广，精简我的页面。
-#!author=可莉🅥（原插件与 JQ）；RuCu6、kelv1n1n（v1 整理）；shengrui123（Egern 转换参考）
-#!icon=https://raw.githubusercontent.com/luestr/IconResource/main/App_icon/120px/Amap.png
-#!category=iKeLee
-#!openUrl=https://apps.apple.com/app/id461703208
-#!tag=去广告
-#!version=2026-11-14-v4
+#!author=小慧 (魔改自可莉、RuCu6、kelv1n1n；Egern 转换参考 shengrui123)
 #!homepage=https://hub.kelee.one
+#!icon=https://raw.githubusercontent.com/luestr/IconResource/main/App_icon/120px/Amap.png
+#!category=去广告
+#!system=ios
+#!version=2026-11-14-v5
+#!date=2026-11-14
+#!openUrl=https://apps.apple.com/app/id461703208
 
 # v3（2026-11-08，小慧整理）：
 # - 脚本回来了，用的是原插件真正的脚本地址 https://rucu6.pages.dev/Scripts/amap.js。
@@ -28,6 +29,8 @@
 # 更贴近原插件，也避免整包清空影响搜索页。保留 v2/v3 的全部 jq 白名单规则；
 # scene/recommend 仍用 jq 白名单（不整包清空）、weather/v2 仍不清空（保天气显示）。
 # 14 条脚本规则与原插件一致，amap.js 仍为 23,517 字节未变。
+#
+# v5（2026-11-14，小慧）：仅统一文件头格式（分组改为去广告，作者标注魔改来源，补 #!date），规则内容未变。
 #
 [Rule]
 DOMAIN,amap-aos-info-nogw.amap.com,REJECT

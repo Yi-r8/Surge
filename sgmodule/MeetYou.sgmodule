@@ -1,11 +1,13 @@
 #!name=美柚去广告
 #!desc=移除开屏广告、弹窗推广和信息流推广，移除青少年模式弹窗和我的页面推广。
-#!openUrl=https://apps.apple.com/app/id634896669
-#!author=可莉🅥[https://github.com/luestr/ProxyResource/blob/main/README.md]
-#!tag=去广告
+#!author=小慧 (魔改自可莉)
 #!homepage=https://hub.kelee.one
 #!icon=https://raw.githubusercontent.com/luestr/IconResource/main/App_icon/120px/MeetYou.png
-#!version=2026-11-14-v1
+#!category=去广告
+#!system=ios
+#!version=2026-11-14-v2
+#!date=2026-11-14
+#!openUrl=https://apps.apple.com/app/id634896669
 
 # v1（2026-11-14，小慧）：转换自可莉 MeetYou_remove_ads.lpx（2026-10-02）。
 # - [Rule] 两个广告域改用 REJECT-DROP + QUIC AND 规则（与本仓库其它模块一致，
@@ -13,6 +15,8 @@
 # - Loon 新语法 reject(404)（404 + 空 body）译为 [Map Local] 空 body + 404。
 # - response.json.delete 译为 [Body Rewrite] jq delpaths。
 # - 原插件正则带 /i，Surge 侧加 (?i) 前缀。
+#
+# v2（2026-11-14，小慧）：仅统一文件头格式（分组改为去广告，作者标注魔改来源，补 #!date），规则内容未变。
 
 [Rule]
 DOMAIN,ad.seeyouyima.com,REJECT-DROP
