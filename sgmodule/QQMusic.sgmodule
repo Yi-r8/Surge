@@ -1,0 +1,32 @@
+#!name=QQ音乐去广告
+#!desc=过滤QQ音乐广告
+#!author=小慧 (转换自 可莉)
+#!homepage=https://kelee.one/Tool/Loon/Lpx/QQMusic_remove_ads.lpx
+#!category=去广告
+#!version=2026-11-15-v1
+#!openUrl=https://y.qq.com/
+
+[Rule]
+DOMAIN,adstats.tencentmusic.com,REJECT-DROP
+AND,((DOMAIN,adstats.tencentmusic.com),(PROTOCOL,QUIC)),REJECT-DROP
+DOMAIN,ad.tencentmusic.com,REJECT-DROP
+AND,((DOMAIN,ad.tencentmusic.com),(PROTOCOL,QUIC)),REJECT-DROP
+DOMAIN,adcdn.tencentmusic.com,REJECT-DROP
+AND,((DOMAIN,adcdn.tencentmusic.com),(PROTOCOL,QUIC)),REJECT-DROP
+DOMAIN,adcdn6.tencentmusic.com,REJECT-DROP
+AND,((DOMAIN,adcdn6.tencentmusic.com),(PROTOCOL,QUIC)),REJECT-DROP
+DOMAIN,adexpo.tencentmusic.com,REJECT-DROP
+AND,((DOMAIN,adexpo.tencentmusic.com),(PROTOCOL,QUIC)),REJECT-DROP
+DOMAIN,adclick.tencentmusic.com,REJECT-DROP
+AND,((DOMAIN,adclick.tencentmusic.com),(PROTOCOL,QUIC)),REJECT-DROP
+DOMAIN,mc.tencentmusic.com,REJECT-DROP
+AND,((DOMAIN,mc.tencentmusic.com),(PROTOCOL,QUIC)),REJECT-DROP
+DOMAIN,monitor.music.qq.com,REJECT-DROP
+AND,((DOMAIN,monitor.music.qq.com),(PROTOCOL,QUIC)),REJECT-DROP
+DOMAIN,tmead.y.qq.com,REJECT-DROP
+AND,((DOMAIN,tmead.y.qq.com),(PROTOCOL,QUIC)),REJECT-DROP
+# tmeadbak/tmeadquic 是 tmead.y.qq.com 的同级域名，单列
+DOMAIN,tmeadbak.y.qq.com,REJECT-DROP
+AND,((DOMAIN,tmeadbak.y.qq.com),(PROTOCOL,QUIC)),REJECT-DROP
+DOMAIN,tmeadquic.y.qq.com,REJECT-DROP
+AND,((DOMAIN,tmeadquic.y.qq.com),(PROTOCOL,QUIC)),REJECT-DROP
