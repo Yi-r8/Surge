@@ -3,13 +3,14 @@
 #!author=小慧 (转换自 TomCatXue)
 #!homepage=https://github.com/TomCatXue/MyCookieCenter
 #!category=去广告
-#!version=2026-11-15-v1
+#!version=2026-11-15-v2
 #!openUrl=https://apps.apple.com/app/id736536022
-#!arguments=sponsorBlock:bilibili.airborne,displayUpList:auto,purifyComment:true,optimizeRequest:bilibili.protobuf.request,VIP:false,Authorization:,UserAgent:,logLevel:error
+#!arguments=sponsorBlock:bilibili.airborne,displayUpList:auto,purifyComment:true,optimizeRequest:bilibili.protobuf.request,sponsorBlockPolicy:HK,VIP:false,Authorization:"",UserAgent:"",logLevel:error
+#!arguments-desc=sponsorBlock/optimizeRequest：改成 # 关闭对应脚本\nsponsorBlockPolicy：空降助手服务器走哪个策略，默认 HK，可改 DIRECT 或任意策略组名\nVIP：true 开启凭证注入，需填 Authorization
 
 [Rule]
-# 空降助手服务器：插件要求走代理防超时，HK 实测 38–175ms
-DOMAIN,bsbsb.top,HK
+# 空降助手服务器：策略由 sponsorBlockPolicy 参数控制（默认 HK）
+DOMAIN,bsbsb.top,{{{sponsorBlockPolicy}}}
 # 阻止B站备用域名访问
 DOMAIN,api.biliapi.com,REJECT
 DOMAIN,app.biliapi.com,REJECT
