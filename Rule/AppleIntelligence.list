@@ -1,7 +1,7 @@
 # Apple Intelligence · 走美国节点（AIGC）
 # 用途：资格校验、私有云计算（PCC）、扩展服务
 # 注意：Siri 核心语音不在此列，见 Siri.list（必须直连）
-# 更新：2026-11-09
+# 更新：2026-11-17
 
 # 资格校验
 DOMAIN,gspe1-ssl.ls.apple.com
@@ -13,3 +13,9 @@ DOMAIN-SUFFIX,apple-relay.fastly-edge.com
 DOMAIN-SUFFIX,apple-relay.akamaized.net
 DOMAIN-SUFFIX,apple-relay.mask.apple-dns.net
 DOMAIN-SUFFIX,cp4.cloudflare.com
+
+# PCC 与相册高质量消除（AppleFlow）
+DOMAIN,issuer.apple.com
+DOMAIN,ropes.apple.com
+DOMAIN-SUFFIX,mask.icloud.com
+DOMAIN,app.apple.com
