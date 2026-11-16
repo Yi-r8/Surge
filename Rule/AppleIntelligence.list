@@ -15,7 +15,10 @@ DOMAIN-SUFFIX,apple-relay.mask.apple-dns.net
 DOMAIN-SUFFIX,cp4.cloudflare.com
 
 # PCC 与相册高质量消除（AppleFlow）
-DOMAIN,issuer.apple.com
-DOMAIN,ropes.apple.com
+DOMAIN-SUFFIX,issuer.apple.com
+DOMAIN-SUFFIX,ropes.apple.com
+DOMAIN,mask-api.icloud.com
+DOMAIN,mask-h2.icloud.com
 DOMAIN-SUFFIX,mask.icloud.com
-DOMAIN,app.apple.com
+DOMAIN,ss-cleanup-proxy-prod.us-east-1m.app.apple.com
+DOMAIN-SUFFIX,app.apple.com
