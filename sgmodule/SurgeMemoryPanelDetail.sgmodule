@@ -1,10 +1,10 @@
 #!name=Surge 内存详情
-#!desc=在策略选择视图显示 Surge 运行监控：运行时长、启动时间、当前内存 + 16 格进度条（粗实线当前占用、粗虚线延伸到峰值）、观测峰值/最低、活动连接、DNS 缓存、虚拟 IP、临时规则、封禁；独立模块，和“Surge 内存面板”分开；iOS 需有效订阅
+#!desc=在策略选择视图显示 Surge 运行监控：运行时长、启动时间、当前内存 + 16 格进度条（粗实线当前占用、粗虚线延伸到峰值）、观测峰值/最低、活动连接、DNS 缓存；独立模块，和“Surge 内存面板”分开；iOS 需有效订阅
 #!author=小慧
 #!homepage=https://github.com/Yi-r8/Surge/blob/main/sgmodule/SurgeMemoryPanelDetail.sgmodule
 #!category=工具
 #!system=ios
-#!version=2026-11-17-v3
+#!version=2026-11-17-v4
 
 # ============ 说明 ============
 # 信息面板（Information Panel）显示在 iOS 的策略选择视图里。

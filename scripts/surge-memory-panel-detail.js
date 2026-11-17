@@ -1,8 +1,7 @@
 // Surge 运行监控面板脚本（type=generic，供 [Panel] 调用）
 //
 // 详情版：运行时长、启动时间、当前内存 + 同一条 16 格进度条
-// （▬ 当前、┅ 到峰值、─ 未用）+ 观测峰值/最低 + 占用构成的条数明细
-// （活动连接、DNS 缓存、虚拟 IP、临时规则、封禁）。
+// （▬ 当前、┅ 到峰值、─ 未用）+ 观测峰值/最低 + 活动连接、DNS 缓存。
 //
 // 注意：Surge 只报内存总占用，不报各部分的 MB 明细，所以详情面板
 // 只能显示各部分的条数/个数，各占多少 MB 是拿不到的，不要硬编。
@@ -11,8 +10,7 @@
 // 采样；检测到引擎重启（uptime 变小）自动重置），和经典面板的 key 分开。
 //
 // 数据源：优先调 /v1/mcp 的 dump_runtime_data（一次拿到全部计数字段）；
-// 拿不到时回退 /v1/metrics（Prometheus 纯文本；虚拟 IP / 临时规则两项
-// 没有，显示 —）。$httpAPI 无需鉴权。
+// 拿不到时回退 /v1/metrics（Prometheus 纯文本）。$httpAPI 无需鉴权。
 
 var LIMIT_MB = 50; // iOS Network Extension 内存上限约 50 MB
 var PEAK_KEY = "surge-memory-detail-v2";
@@ -131,7 +129,6 @@ function renderDetail(d) {
     dualBar(mb / LIMIT_MB, pm.peak / LIMIT_MB, mb, pm.peak),
     "观测峰值 " + pm.peak.toFixed(1) + " MiB · 最低 " + pm.min.toFixed(1) + " MiB",
     "活动连接 " + num(d.activeReq) + " · DNS 缓存 " + num(d.dns),
-    "虚拟 IP " + num(d.vip) + " · 临时规则 " + num(d.tempRules) + " · 封禁 " + num(d.bans),
     "更新 " + fmtNow() + " · 自动刷新 60 秒",
     "",
     "峰值仅统计本模块采样；重启后重新记录。",
@@ -163,15 +160,11 @@ function detailViaMetrics() {
           var up = /surge_uptime_seconds\s+([\d.]+)/.exec(text);
           var ar = /surge_active_requests\s+(\d+)/.exec(text);
           var dc = /surge_dns_cache_entries\s+(\d+)/.exec(text);
-          var bn = /surge_active_bans\s+(\d+)/.exec(text);
           renderDetail({
             mem: parseInt(m[1], 10),
             uptime: up ? parseFloat(up[1]) : null,
             activeReq: ar ? parseInt(ar[1], 10) : null,
             dns: dc ? parseInt(dc[1], 10) : null,
-            vip: null,
-            tempRules: null,
-            bans: bn ? parseInt(bn[1], 10) : null,
           });
           return;
         }
@@ -207,9 +200,6 @@ function detailViaMcp() {
               uptime: data.uptime != null ? data.uptime : null,
               activeReq: data["active-requests"],
               dns: data["dns-cache-entries"],
-              vip: data["virtual-ip-entries"],
-              tempRules: data["temporary-rules"],
-              bans: data["active-bans"],
             });
           } else {
             detailViaMetrics();
