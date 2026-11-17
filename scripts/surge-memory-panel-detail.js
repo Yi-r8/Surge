@@ -121,13 +121,17 @@ function renderDetail(d) {
   var uptimeText = d.uptime != null ? fmtUptime(d.uptime) : "—";
   var startText = d.uptime != null ? fmtStartTime(d.uptime) : "—";
 
+  var pct = ((mb / LIMIT_MB) * 100).toFixed(1);
+  var peakPct = ((pm.peak / LIMIT_MB) * 100).toFixed(1);
+  var minPct = ((pm.min / LIMIT_MB) * 100).toFixed(1);
+
   var lines = [
     "已运行时长 " + uptimeText,
     "启动于 " + startText,
     "",
-    "当前内存占比 " + mb.toFixed(1) + " MiB",
+    "当前内存占比 " + mb.toFixed(1) + " / " + LIMIT_MB + " MB (" + pct + "%)",
     dualBar(mb / LIMIT_MB, pm.peak / LIMIT_MB, mb, pm.peak),
-    "观测峰值 " + pm.peak.toFixed(1) + " MiB · 最低 " + pm.min.toFixed(1) + " MiB",
+    "观测峰值 " + pm.peak.toFixed(1) + " MB (" + peakPct + "%) · 最低 " + pm.min.toFixed(1) + " MB (" + minPct + "%)",
     "活动连接 " + num(d.activeReq) + " · DNS 缓存 " + num(d.dns),
     "更新 " + fmtNow() + " · 自动刷新 60 秒",
     "",
@@ -137,7 +141,7 @@ function renderDetail(d) {
   $done({
     title: "Surge 运行监控",
     content: lines.join("\n"),
-    icon: "list.bullet",
+    icon: "gauge",
     "icon-color": colorFor(mb),
   });
 }
