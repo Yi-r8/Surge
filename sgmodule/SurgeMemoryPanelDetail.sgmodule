@@ -4,7 +4,7 @@
 #!homepage=https://github.com/Yi-r8/Surge/blob/main/sgmodule/SurgeMemoryPanelDetail.sgmodule
 #!category=工具
 #!system=ios
-#!version=2026-11-17-v5
+#!version=2026-11-17-v6
 
 # ============ 说明 ============
 # 信息面板（Information Panel）显示在 iOS 的策略选择视图里。
