@@ -1,24 +1,57 @@
-// Surge 内存详情面板脚本（type=generic，供 [Panel] 调用）
-// 独立模块，和“Surge 内存面板”（经典单面板）分开，互不影响。
-// 内容：同一条进度条（▬ 当前、┅ 到峰值、─ 未用）+ 占用构成的条数明细
-//   （DNS 缓存、虚拟 IP、活动请求、临时规则、封禁）。
+// Surge 运行监控面板脚本（type=generic，供 [Panel] 调用）
+//
+// 详情版：运行时长、启动时间、当前内存 + 同一条 16 格进度条
+// （▬ 当前、┅ 到峰值、─ 未用）+ 观测峰值/最低 + 占用构成的条数明细
+// （活动连接、DNS 缓存、虚拟 IP、临时规则、封禁）。
+//
 // 注意：Surge 只报内存总占用，不报各部分的 MB 明细，所以详情面板
 // 只能显示各部分的条数/个数，各占多少 MB 是拿不到的，不要硬编。
-// 峰值用 $persistentStore 持久化（和经典面板共用同一个 key），检测到
-// 引擎重启（uptime 变小）自动重置。
+//
+// 峰值/最低用 $persistentStore 持久化（本模块独立的 key，只统计本模块
+// 采样；检测到引擎重启（uptime 变小）自动重置），和经典面板的 key 分开。
+//
 // 数据源：优先调 /v1/mcp 的 dump_runtime_data（一次拿到全部计数字段）；
 // 拿不到时回退 /v1/metrics（Prometheus 纯文本；虚拟 IP / 临时规则两项
 // 没有，显示 —）。$httpAPI 无需鉴权。
+
 var LIMIT_MB = 50; // iOS Network Extension 内存上限约 50 MB
-var PEAK_KEY = "surge-memory-peak-v1";
+var PEAK_KEY = "surge-memory-detail-v2";
 var BAR_WIDTH = 16;
 
+function pad(n) {
+  return (n < 10 ? "0" : "") + n;
+}
+
+// 运行时长：11 小时 28 分 / 1 天 2 小时 / 28 分 / 45 秒
 function fmtUptime(sec) {
   sec = Math.floor(sec);
   if (sec < 60) return sec + " 秒";
-  if (sec < 3600) return Math.floor(sec / 60) + " 分钟";
-  if (sec < 86400) return (sec / 3600).toFixed(1) + " 小时";
-  return (sec / 86400).toFixed(1) + " 天";
+  if (sec < 3600) return Math.floor(sec / 60) + " 分";
+  var h = Math.floor(sec / 3600);
+  var m = Math.floor((sec % 3600) / 60);
+  if (sec < 86400) return h + " 小时 " + m + " 分";
+  var d = Math.floor(sec / 86400);
+  return d + " 天 " + Math.floor((sec % 86400) / 3600) + " 小时";
+}
+
+// 启动时间：现在减 uptime，格式 MM-DD HH:mm
+function fmtStartTime(uptimeSec) {
+  var t = new Date(Date.now() - uptimeSec * 1000);
+  return (
+    pad(t.getMonth() + 1) +
+    "-" +
+    pad(t.getDate()) +
+    " " +
+    pad(t.getHours()) +
+    ":" +
+    pad(t.getMinutes())
+  );
+}
+
+// 更新时间：HH:mm:ss
+function fmtNow() {
+  var t = new Date();
+  return pad(t.getHours()) + ":" + pad(t.getMinutes()) + ":" + pad(t.getSeconds());
 }
 
 // 双段进度条：直接用原始占用比例算格数，不要先把百分比四舍五入
@@ -45,15 +78,10 @@ function dualBar(curFrac, peakFrac, curMB, peakMB) {
   return s;
 }
 
-function colorFor(mb) {
-  if (mb >= 40) return "#FF3B30"; // 红：接近上限
-  if (mb >= 30) return "#FF9500"; // 橙：偏高
-  return "#34C759"; // 绿：正常
-}
-
-function trackPeak(mb, uptimeSec) {
-  // 峰值跟踪：读出旧峰值，引擎重启则重置；和经典面板共用同一个 key。
+function trackPeakMin(mb, uptimeSec) {
+  // 峰值/最低跟踪：读出旧值，引擎重启则重置；本模块独立的 key。
   var peak = mb;
+  var min = mb;
   try {
     var raw = $persistentStore.read(PEAK_KEY);
     if (raw) {
@@ -65,44 +93,54 @@ function trackPeak(mb, uptimeSec) {
         uptimeSec >= storedUptime
       ) {
         peak = Math.max(mb, obj.peak || 0);
+        min = obj.min != null ? Math.min(mb, obj.min) : mb;
       }
     }
   } catch (e) {}
   try {
     $persistentStore.write(
-      JSON.stringify({ peak: peak, uptime: uptimeSec }),
+      JSON.stringify({ peak: peak, min: min, uptime: uptimeSec }),
       PEAK_KEY
     );
   } catch (e) {}
-  return peak;
+  return { peak: peak, min: min };
 }
 
 function renderDetail(d) {
   var mb = d.mem / 1048576;
-  var peak = trackPeak(mb, d.uptime);
-  var pct = ((mb / LIMIT_MB) * 100).toFixed(1);
-  var peakPct = ((peak / LIMIT_MB) * 100).toFixed(1);
-  var num = function (v, unit) {
-    return v == null ? "—" : v + " " + unit;
+  var pm = trackPeakMin(mb, d.uptime);
+
+  var num = function (v) {
+    return v == null ? "—" : String(v);
   };
+
+  var uptimeText = d.uptime != null ? fmtUptime(d.uptime) : "—";
+  var startText = d.uptime != null ? fmtStartTime(d.uptime) : "—";
+
   var lines = [
-    "▬▬▬ 当前 " + mb.toFixed(1) + " MB (" + pct + "%)",
-    "┅┅┅ 峰值 " + peak.toFixed(1) + " MB (" + peakPct + "%)",
-    dualBar(mb / LIMIT_MB, peak / LIMIT_MB, mb, peak),
-    "DNS 缓存 " + num(d.dns, "条") + " | 虚拟 IP " + num(d.vip, "条"),
-    "活动请求 " + num(d.activeReq, "个") + " | 临时规则 " + num(d.tempRules, "条"),
-    "封禁 " + num(d.bans, "个") + " | 运行 " + (d.uptime != null ? fmtUptime(d.uptime) : "—"),
+    "已运行时长 " + uptimeText,
+    "启动于 " + startText,
+    "",
+    "当前内存占比 " + mb.toFixed(1) + " MiB",
+    dualBar(mb / LIMIT_MB, pm.peak / LIMIT_MB, mb, pm.peak),
+    "观测峰值 " + pm.peak.toFixed(1) + " MiB · 最低 " + pm.min.toFixed(1) + " MiB",
+    "活动连接 " + num(d.activeReq) + " · DNS 缓存 " + num(d.dns),
+    "虚拟 IP " + num(d.vip) + " · 临时规则 " + num(d.tempRules) + " · 封禁 " + num(d.bans),
+    "更新 " + fmtNow() + " · 自动刷新 60 秒",
+    "",
+    "峰值仅统计本模块采样；重启后重新记录。",
   ];
+
   $done({
-    title: "Surge 内存详情",
+    title: "Surge 运行监控",
     content: lines.join("\n"),
-    icon: "list.bullet",
-    "icon-color": colorFor(mb),
+    icon: "info.circle.fill",
+    "icon-color": "#007AFF",
   });
 }
 
 function failDetail(msg) {
-  $done({ title: "Surge 内存详情", content: "读取失败：" + msg, style: "error" });
+  $done({ title: "Surge 运行监控", content: "读取失败：" + msg, style: "error" });
 }
 
 // 路径 2（回退）：/v1/metrics（Prometheus 纯文本）
