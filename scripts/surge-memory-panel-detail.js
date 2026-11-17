@@ -78,6 +78,12 @@ function dualBar(curFrac, peakFrac, curMB, peakMB) {
   return s;
 }
 
+function colorFor(mb) {
+  if (mb >= 40) return "#FF3B30"; // 红：接近上限
+  if (mb >= 30) return "#FF9500"; // 橙：偏高
+  return "#34C759"; // 绿：正常
+}
+
 function trackPeakMin(mb, uptimeSec) {
   // 峰值/最低跟踪：读出旧值，引擎重启则重置；本模块独立的 key。
   var peak = mb;
@@ -134,8 +140,8 @@ function renderDetail(d) {
   $done({
     title: "Surge 运行监控",
     content: lines.join("\n"),
-    icon: "info.circle.fill",
-    "icon-color": "#007AFF",
+    icon: "list.bullet",
+    "icon-color": colorFor(mb),
   });
 }
 
