@@ -3,7 +3,7 @@
 #!author=小慧 (魔改自 许舟)
 #!homepage=https://github.com/Yi-r8/Surge/blob/main/sgmodule/Hongguo.sgmodule
 #!category=去广告
-#!version=1.2.1
+#!version=1.2.2
 #!openUrl=https://apps.apple.com/cn/app/id6451407032
 # ============================================================
 # 红果短剧（com.phoenix.video / hongguoduanju.com）去广告模块
@@ -109,8 +109,10 @@ DOMAIN-WILDCARD,webcast*-open*.douyin.com,REJECT,extended-matching,pre-matching
 # 连 CNAME 真身一起封，否则回源又通
 DOMAIN-WILDCARD,webcast*-open*.cdnbuild.net,REJECT,extended-matching,pre-matching
 DOMAIN-WILDCARD,webcast*-open*.cdn.dsa.cdnbuild.net,REJECT,extended-matching,pre-matching
+# content-open：[Host] 有 127.0.0.1 兜底，按模块规矩补 REJECT 对应
+DOMAIN,content-open.douyin.com,REJECT,extended-matching,pre-matching
 
-# ============ ⑨ 随机子域广告 CDN（伪装域名，实抓确认）============
+# ============ ⑧ 随机子域广告 CDN（伪装域名，实抓确认）============
 DOMAIN-SUFFIX,comfylink.com,REJECT,extended-matching,pre-matching
 DOMAIN-SUFFIX,ndcpp.com,REJECT,extended-matching,pre-matching
 DOMAIN-SUFFIX,ydycdn.com,REJECT,extended-matching,pre-matching
@@ -120,7 +122,7 @@ DOMAIN-SUFFIX,xinqiucc.com,REJECT,extended-matching,pre-matching
 DOMAIN-SUFFIX,jomoxc.com,REJECT,extended-matching,pre-matching
 DOMAIN-SUFFIX,wmzfylgdsz.com,REJECT,extended-matching,pre-matching
 
-# ============ ⑩ 埋点 / 上报（不影响播放；金币异常时先注释本段）============
+# ============ ⑨ 埋点 / 上报（不影响播放；金币异常时先注释本段）============
 DOMAIN,mon.toutiaocloud.net,REJECT,extended-matching,pre-matching
 DOMAIN,mon.toutiaocloud.com,REJECT,extended-matching,pre-matching
 DOMAIN,mon.zijieapi.com,REJECT,extended-matching,pre-matching
