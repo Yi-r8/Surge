@@ -3,7 +3,7 @@
 #!author=小慧 (魔改自可莉、RuCu6、kelv1n1n；Egern 转换参考 shengrui123)
 #!homepage=https://hub.kelee.one
 #!category=去广告
-#!version=2026-11-14-v5
+#!version=2026-11-14-v6
 #!openUrl=https://apps.apple.com/app/id461703208
 
 [Rule]
@@ -41,7 +41,6 @@ http-response-jq ^https:\/\/m5\.amap\.com\/ws\/shield\/search_business\/process\
 
 ^https:\/\/m5\.amap\.com\/ws\/shield\/search_business\/process\/orderList\? data-type=text data="{}" status-code=200 header="Content-Type:application/json"
 
-^https:\/\/m5\.amap\.com\/ws\/shield\/search\/new_hotword\? data-type=text data="{}" status-code=200 header="Content-Type:application/json"
 
 ^https:\/\/m5\.amap\.com\/ws\/faas\/amap-navigation\/card-service-(?:car-end|route-plan) data-type=text data="{}" status-code=200 header="Content-Type:application/json"
 
