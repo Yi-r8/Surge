@@ -3,7 +3,7 @@
 #!author=小慧 (魔改自 QingRex 的 LoonKissSurge 拼多多 Beta 模块，原作者 ZenmoFeiShi、可莉)
 #!homepage=https://hub.kelee.one
 #!category=去广告
-#!version=2026-11-14-v16
+#!version=2026-11-14-v17
 #!openUrl=https://apps.apple.com/app/id1044283059
 
 [Rule]
@@ -13,7 +13,6 @@ AND,((DOMAIN,api.pinduoduo.com,extended-matching),(PROTOCOL,QUIC)),REJECT
 DOMAIN,titan.pinduoduo.com,REJECT-NO-DROP,extended-matching,pre-matching
 DOMAIN,xg.pinduoduo.com,REJECT,extended-matching,pre-matching
 DOMAIN,cdl-1.pddpic.com,REJECT,extended-matching,pre-matching
-DOMAIN,titan.pinduoduo.com,REJECT,extended-matching,pre-matching
 DOMAIN,cdl-p2.pddpic.com,REJECT,extended-matching,pre-matching
 DOMAIN,cd-1.pddpic.com,REJECT,extended-matching,pre-matching
 DOMAIN,apm.pinduoduo.com,REJECT,extended-matching,pre-matching
@@ -29,7 +28,6 @@ DOMAIN,apm-a.pinduoduo.com,REJECT,extended-matching,pre-matching
 http-response-jq ^https:\/\/api\.pinduoduo\.com\/api\/alexa\/homepage\/hub\? 'delpaths([["result","dy_module","irregular_banner_dy"]])'
 http-response-jq ^https:\/\/api\.pinduoduo\.com\/api\/alexa\/homepage\/hub\? 'delpaths([["result","icon_set"]])'
 http-response-jq ^https:\/\/api\.pinduoduo\.com\/api\/alexa\/homepage\/hub\? 'delpaths([["result","search_bar_hot_query"]])'
-http-response-jq ^https:\/\/api\.pinduoduo\.com\/api\/alexa\/homepage\/hub\? 'delpaths([["result","dy_module","irregular_banner_dy"]])'
 http-response-jq ^https:\/\/api\.pinduoduo\.com\/api\/alexa\/homepage\/hub\? '.result.bottom_tabs? |= map(select(.link | IN("index.html", "chat_list.html", "personal.html"))) | .result.buffer_bottom_tabs? |= map(select(.link | IN("index.html", "chat_list.html", "personal.html"))) | .result.all_top_opts |= map(del(.selected_image, .image, .height, .width))'
 http-response-jq ^https:\/\/api\.pinduoduo\.com\/api\/alexa\/homepage\/hub\? 'if (type == "object" and (.result | type) == "object") then .result.timeline_visible = false | del(.result.home_screen_skin.timeline) | if (.result.module_order | type) == "array" then .result.module_order |= map(select(if type == "object" then .module_name != "timeline" else . != "timeline" end)) else . end else . end'
 http-response-jq ^https:\/\/api\.pinduoduo\.com\/api\/alexa\/homepage\/hub\? 'if (type == "object" and (.result | type) == "object") then if (.result.all_top_opts | type) == "array" then .result.all_top_opts |= map(select((.opt_name // "") | test("最快明天达|政府补贴") | not)) else . end else . end'
