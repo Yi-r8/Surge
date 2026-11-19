@@ -3,30 +3,14 @@
 #!author=小慧 (转换自 ZenmoFeiShi / 怎么肥事、walala，feed/detail 与 replyList 补自 myouhi / xiaomaoJT 的公开去广告逻辑)
 #!homepage=https://github.com/ZenmoFeiShi/Qx/blob/main/KuAn.snippet
 #!category=去广告
-#!version=2026-11-14-v7
+#!version=2026-11-19-v8
 #!openUrl=https://www.coolapk.com/
 
 # [Rule] 是全局生效的：这几家 SDK 的广告在其他 App 里也会一并被拦。
 
 [Rule]
-# ============ 穿山甲 / Pangle / GroMore（字节）============
-DOMAIN-SUFFIX,pangolin-sdk-toutiao.com,REJECT-DROP
-AND,((DOMAIN-SUFFIX,pangolin-sdk-toutiao.com),(PROTOCOL,QUIC)),REJECT-DROP
-DOMAIN-SUFFIX,pangolin-sdk-toutiao-b.com,REJECT-DROP
-AND,((DOMAIN-SUFFIX,pangolin-sdk-toutiao-b.com),(PROTOCOL,QUIC)),REJECT-DROP
-DOMAIN-SUFFIX,pangolin-sdk-toutiao1.com,REJECT-DROP
-AND,((DOMAIN-SUFFIX,pangolin-sdk-toutiao1.com),(PROTOCOL,QUIC)),REJECT-DROP
-DOMAIN-SUFFIX,pglstatp-toutiao.com,REJECT-DROP
-AND,((DOMAIN-SUFFIX,pglstatp-toutiao.com),(PROTOCOL,QUIC)),REJECT-DROP
-DOMAIN-SUFFIX,pangle.io,REJECT-DROP
-AND,((DOMAIN-SUFFIX,pangle.io),(PROTOCOL,QUIC)),REJECT-DROP
-DOMAIN,ad.toutiao.com,REJECT-DROP
-AND,((DOMAIN,ad.toutiao.com),(PROTOCOL,QUIC)),REJECT-DROP
-# 字节域名调度（SDK 用它换取可用广告域名，会绕过域名拦截）
-# 注意：只拦精确主机。zijieapi.com 是字节主接口域（抖音 get_domains、
-# ma5 API、polaris 都走这里），写成 DOMAIN-SUFFIX 会把抖音整个拦掉。
-DOMAIN,tnc3-alisc1.zijieapi.com,REJECT-DROP
-AND,((DOMAIN,tnc3-alisc1.zijieapi.com),(PROTOCOL,QUIC)),REJECT-DROP
+# 穿山甲 / Pangle（字节）：由红果模块的规则拦截，本模块不再重复写（会被遮住）。
+# 注意：zijieapi.com 是字节主接口域（抖音 get_domains、ma5 API、polaris 都走这里），不要写 DOMAIN-SUFFIX 拦整域。
 
 # ============ 优量汇 / 腾讯广告（GDT）============
 DOMAIN-SUFFIX,gdt.qq.com,REJECT-DROP
@@ -54,20 +38,13 @@ AND,((DOMAIN-SUFFIX,kwaiad.com),(PROTOCOL,QUIC)),REJECT-DROP
 DOMAIN-SUFFIX,adkwai.com,REJECT-DROP
 AND,((DOMAIN-SUFFIX,adkwai.com),(PROTOCOL,QUIC)),REJECT-DROP
 
-[URL Rewrite]
-# 穿山甲广告 SDK：直接拒绝
-^https?://api-access\.pangolin-sdk-toutiao\.com/api/ad/union/sdk _ reject
-
 [Map Local]
 # 搜索热词：返回空对象
 (?i)^https://api\.coolapk\.com/v6/search\?.*type=hotSearch data-type=text data="{}" status-code=200 header="Content-Type: application/json"
 
 [Body Rewrite]
-# 开屏广告：删掉 main/init 里的 SplashAd.* / Ad.SPLASH* / Ad.PRELOAD* 配置
-# 实测这 17 个键控制开屏：SplashAd.Type / Expires / onResume / resumeType / resumeExpires
-# / openType / sensorDelay / sensitivity / timeout / hType，Ad.PRELOAD / PRELOAD_AFTER_USE
-# / PRELOAD_THRESHOLD / PRELOAD_THRESHOLD_IOS / SPLASH_DOWNLOAD_POPUP / SPLASH_RETRY_PERIOD / ADLOAD_POS_ID
-http-response-jq ^https://api\.coolapk\.com/v6/main/init '.data[].extraDataArr |= with_entries(select(.key | (startswith("SplashAd") or startswith("Ad.PRELOAD") or startswith("Ad.SPLASH") or startswith("Ad.ADLOAD")) | not)) | del(.data[]? | select(.entityId == 944 or .entityId == 945 or .entityId == 24455 or .entityId == 36839 or .entityId == 1635 or .title == "关注")) | .data |= map(if .entities then .entities |= map(select(.entityId != 1635 and .entityId != 2261 and .entityId != 1633 and .entityId != 413 and .entityId != 417 and .entityId != 1754 and .entityId != 1966 and .entityId != 2274 and .entityId != 1170 and .entityId != 1175 and .entityId != 1190 and .entityId != 2258 and .title != "关注")) else . end)'
+# 开屏广告：删掉 main/init 里 --SplashAd.* 与全部 Ad.* 配置（各广告平台 App ID、下载弹窗等开屏开关）
+http-response-jq ^https://api\.coolapk\.com/v6/main/init '.data[].extraDataArr |= with_entries(select(.key | (startswith("--SplashAd") or startswith("SplashAd") or startswith("Ad.")) | not)) | del(.data[]? | select(.entityId == 944 or .entityId == 945 or .entityId == 24455 or .entityId == 36839 or .entityId == 1635 or .title == "关注")) | .data |= map(if .entities then .entities |= map(select(.entityId != 1635 and .entityId != 2261 and .entityId != 1633 and .entityId != 413 and .entityId != 417 and .entityId != 1754 and .entityId != 1966 and .entityId != 2274 and .entityId != 1170 and .entityId != 1175 and .entityId != 1190 and .entityId != 2258 and .title != "关注")) else . end)'
 # 首页信息流 indexV8：去掉"值得买 / 红包"类推广及 sponsorCard
 http-response-jq ^https://api\.coolapk\.com/v6/main/indexV8 '.data |= map(select((.entityId != 32557 and .entityId != 29349 and .entityId != 28621) and (.entityTemplate != "sponsorCard") and (.title | test("值得买|红包") | not)))'
 # 列表页 dataList：去掉"话题热议"、推广卡片及 sponsorCard
